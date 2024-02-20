@@ -1,3 +1,5 @@
+const { saveAverage } = require("./db");
+
 function handleResult(interaction) {
   var rawSolves = [
     interaction.options.getString("solve-1"),
@@ -26,15 +28,19 @@ function handleResult(interaction) {
 
     const average = calcAvg(timesInSec);
     const timeList = returnCircledTimeList(timesInSec);
-
+    const bestTime = Math.min(...timesInSec);
     // Save data to db here
-    //
-    //
-    //
-    // --------------------
+    saveAverage(
+      timesInSec,
+      average,
+      interaction.user.id,
+      interaction.member.displayName,
+      bestTime,
+      timeList
+    );
 
     interaction.reply({
-      ephemeral: true,
+      ephemeral: false,
       content: `${timeList} = ${formatTime(average)} average`,
     });
   }
@@ -141,4 +147,5 @@ function returnCircledTimeList(solves) {
 
 module.exports = {
   handleResult,
+  formatTime,
 };

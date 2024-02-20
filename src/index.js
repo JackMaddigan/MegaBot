@@ -1,7 +1,10 @@
 require("dotenv").config();
+const cron = require("node-cron");
 
 const { Client, IntentsBitField, Partials } = require("discord.js");
 const { handleResult } = require("./submit");
+const { adminDeleteResult, getRankedResults } = require("./db");
+const { sendPodium } = require("./comp");
 const client = new Client({
   intents: [
     IntentsBitField.Flags.Guilds,
@@ -14,6 +17,7 @@ const client = new Client({
 
 client.login(process.env.botToken).then(() => {
   console.log("MegaBot is online!");
+  manageComp();
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -23,5 +27,30 @@ client.on("interactionCreate", async (interaction) => {
   console.log(commandName);
   if (commandName === "submit") {
     handleResult(interaction);
+  } else if (commandName === "unsubmit") {
+    const user = interaction.options.getUser("user");
+    adminDeleteResult(user.id);
+    interaction.reply({
+      content: `Removed results for ${user.displayName}`,
+      ephemeral: true,
+    });
   }
 });
+
+// “At 22:00 on Tuesday.”
+cron.schedule("0 22 * * 1", () => {
+  manageComp();
+});
+
+async function manageComp() {
+  // var guild = client.guilds.cache.get(process.env.guildId);
+  const results = await getRankedResults();
+  const resultsChannel = client.channels.cache.get(
+    process.env.resultsChannelId
+  );
+  const scramblesChannel = client.channels.cache.get(
+    process.env.scrambleChannelId
+  );
+  const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+  sendPodium(results, resultsChannel, scramblesChannel, adminChannel);
+}
