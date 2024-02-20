@@ -1,6 +1,10 @@
 const { saveAverage } = require("./db");
 
 function handleResult(interaction) {
+  var submitForElse = false;
+  var uid = interaction.user.id;
+  var displayName = interaction.member.displayName;
+  var addon = "";
   var rawSolves = [
     interaction.options.getString("solve-1"),
     interaction.options.getString("solve-2"),
@@ -8,6 +12,15 @@ function handleResult(interaction) {
     interaction.options.getString("solve-4"),
     interaction.options.getString("solve-5"),
   ];
+  if (interaction.member.roles.cache.has(process.env.adminRoleId)) {
+    var submitFor = interaction.options.getUser("admin");
+    if (submitFor !== null) {
+      submitForElse = true;
+      uid = submitFor.id;
+      displayName = submitFor.displayName;
+      addon = ` for ${submitFor}`;
+    }
+  }
   var isSolvesValid = validateSolves(rawSolves);
   if (isSolvesValid[0] === false) {
     // invalid solves
@@ -30,18 +43,11 @@ function handleResult(interaction) {
     const timeList = returnCircledTimeList(timesInSec);
     const bestTime = Math.min(...timesInSec);
     // Save data to db here
-    saveAverage(
-      timesInSec,
-      average,
-      interaction.user.id,
-      interaction.member.displayName,
-      bestTime,
-      timeList
-    );
+    saveAverage(timesInSec, average, uid, displayName, bestTime, timeList);
 
     interaction.reply({
       ephemeral: false,
-      content: `${timeList} = ${formatTime(average)} average`,
+      content: `${timeList} = ${formatTime(average)} average${addon}`,
     });
   }
 }

@@ -46,10 +46,18 @@ async function sendPodium(
 
 async function scrambles(week, scramblesChannel) {
   const scrambles = cube("mega", 5);
+
   let scrambleText =
     "<@&" + process.env.weeklyCompPingRole + "> New scrambles are up!```";
   for (let i = 0; i < scrambles.length; i++) {
-    scrambleText += `${i + 1}. ${scrambles[i]}\n`;
+    console.log(scrambles[i]);
+    var linesArray = scrambles[i].split("\n");
+    console.log(linesArray);
+    for (let j = 1; j < linesArray.length - 1; j++) {
+      linesArray[j] = "\t" + linesArray[j];
+    }
+    scrambles[i] = linesArray.join("\n\u200B");
+    scrambleText += `${i + 1}.  ${scrambles[i]}\n`;
   }
   scrambleText +=
     "```\nSend your results in <#" +
@@ -96,4 +104,4 @@ async function sendAdminFullResults(results, adminChannel) {
   );
 }
 
-module.exports = { sendPodium };
+module.exports = { sendPodium, scrambles };

@@ -3,8 +3,13 @@ const cron = require("node-cron");
 
 const { Client, IntentsBitField, Partials } = require("discord.js");
 const { handleResult } = require("./submit");
-const { adminDeleteResult, getRankedResults } = require("./db");
-const { sendPodium } = require("./comp");
+const {
+  adminDeleteResult,
+  getRankedResults,
+  getWeek,
+  saveWeek,
+} = require("./db");
+const { sendPodium, scrambles } = require("./comp");
 const client = new Client({
   intents: [
     IntentsBitField.Flags.Guilds,
@@ -52,5 +57,12 @@ async function manageComp() {
     process.env.scrambleChannelId
   );
   const adminChannel = client.channels.cache.get(process.env.adminChannelId);
-  sendPodium(results, resultsChannel, scramblesChannel, adminChannel);
+  var week = await getWeek();
+  if (week === 35) {
+    week++;
+    saveWeek(week);
+    scrambles(week, scramblesChannel);
+  } else {
+    sendPodium(results, resultsChannel, scramblesChannel, adminChannel);
+  }
 }
