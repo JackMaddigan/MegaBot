@@ -22,7 +22,6 @@ const client = new Client({
 
 client.login(process.env.botToken).then(() => {
   console.log("MegaBot is online!");
-  manageComp();
 });
 
 client.on("interactionCreate", async (interaction) => {
