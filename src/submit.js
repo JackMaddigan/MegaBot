@@ -6,7 +6,6 @@ function handleResult(interaction) {
     interaction.options.getString("solve-4"),
     interaction.options.getString("solve-5"),
   ];
-  console.log(rawSolves);
   var isSolvesValid = validateSolves(rawSolves);
   if (isSolvesValid[0] === false) {
     // invalid solves
@@ -16,17 +15,27 @@ function handleResult(interaction) {
     });
   } else {
     // solves are all valid
-    const formattedTimes = [
-      formatTime(rawSolves[0]),
-      formatTime(rawSolves[1]),
-      formatTime(rawSolves[2]),
-      formatTime(rawSolves[3]),
-      formatTime(rawSolves[4]),
+
+    const timesInSec = [
+      timeToSeconds(rawSolves[0]),
+      timeToSeconds(rawSolves[1]),
+      timeToSeconds(rawSolves[2]),
+      timeToSeconds(rawSolves[3]),
+      timeToSeconds(rawSolves[4]),
     ];
-    console.log(formattedTimes);
+
+    const average = calcAvg(timesInSec);
+    const timeList = returnCircledTimeList(timesInSec);
+
+    // Save data to db here
+    //
+    //
+    //
+    // --------------------
+
     interaction.reply({
       ephemeral: true,
-      content: `Submitted`,
+      content: `${timeList} = ${average} average`,
     });
   }
 }
@@ -43,7 +52,6 @@ function validateSolves(solves) {
     }
     // Check valid number of parts
     let parts = solve.split(/[:.]/);
-    console.log(parts);
     if (parts.length > 3 && solve.toLowerCase() != "dnf") {
       valid = false;
       invalidSolves += solve + " ";
@@ -53,17 +61,17 @@ function validateSolves(solves) {
 }
 
 function formatTime(solve) {
-  var totalSeconds = timeToSeconds(solve);
-  if (totalSeconds === 10000) return "DNF";
-  var minutes = Math.floor(totalSeconds / 60);
-  var seconds = Math.floor(totalSeconds - minutes * 60);
+  // Assuming time is already in seconds
+  //   solve = timeToSeconds(solve);
+
+  if (solve === 10000) return "DNF";
+  var minutes = Math.floor(solve / 60);
+  var seconds = Math.floor(solve - minutes * 60);
   var milliseconds = Math.round(
-    (totalSeconds - minutes * 60 - Math.floor(totalSeconds - minutes * 60)) *
-      100
+    (solve - minutes * 60 - Math.floor(solve - minutes * 60)) * 100
   )
     .toString()
     .padStart(2, "0");
-  console.log(minutes, seconds, milliseconds);
   seconds =
     seconds < 10 && minutes > 0
       ? seconds.toString().padStart(2, "0") + "."
@@ -97,6 +105,38 @@ function timeToSeconds(solve) {
   }
   totalSeconds = Math.round(totalSeconds * 100) / 100;
   return totalSeconds;
+}
+
+function calcAvg(solves) {
+  // solves.slice means solves wont get affected by sorting
+  var times = solves.slice();
+  times.sort((a, b) => a - b);
+
+  return formatTime(
+    Math.round(((times[1] + times[2] + times[3]) / 3) * 100) / 100
+  );
+}
+
+function returnCircledTimeList(solves) {
+  var bestTimeIndex = 0;
+  var worstTimeIndex = 4;
+  for (let i = 0; i < 5; i++) {
+    if (solves[i] > solves[worstTimeIndex]) {
+      worstTimeIndex = i;
+    }
+    if (solves[i] < solves[bestTimeIndex]) {
+      bestTimeIndex = i;
+    }
+  }
+  let timeList = [];
+  for (let j = 0; j < 5; j++) {
+    if (j === bestTimeIndex || j === worstTimeIndex) {
+      timeList.push(`(${formatTime(solves[j])})`);
+    } else {
+      timeList.push(formatTime(solves[j]));
+    }
+  }
+  return `${timeList[0]}, ${timeList[1]}, ${timeList[2]}, ${timeList[3]}, ${timeList[4]}`;
 }
 
 module.exports = {
