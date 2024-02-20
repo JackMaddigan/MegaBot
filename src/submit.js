@@ -35,7 +35,7 @@ function handleResult(interaction) {
 
     interaction.reply({
       ephemeral: true,
-      content: `${timeList} = ${average} average`,
+      content: `${timeList} = ${formatTime(average)} average`,
     });
   }
 }
@@ -111,10 +111,10 @@ function calcAvg(solves) {
   // solves.slice means solves wont get affected by sorting
   var times = solves.slice();
   times.sort((a, b) => a - b);
-
-  return formatTime(
-    Math.round(((times[1] + times[2] + times[3]) / 3) * 100) / 100
-  );
+  if (times[3] === 10000 && times[4] === 10000) {
+    return 10000;
+  }
+  return Math.round(((times[1] + times[2] + times[3]) / 3) * 100) / 100;
 }
 
 function returnCircledTimeList(solves) {
