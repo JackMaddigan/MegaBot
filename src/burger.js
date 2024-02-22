@@ -37,7 +37,9 @@ async function burger(interaction) {
     interaction.editReply(
       `:hamburger: was already called by **${
         burgerInfo.lastUsername
-      }**. Please try again <t:${timeTillBurger + Math.round(timeNow / 1000)}>.`
+      }**. Please try again <t:${
+        timeTillBurger + Math.round(timeNow / 1000)
+      }:f>.`
     );
   }
 }
