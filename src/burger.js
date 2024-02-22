@@ -1,7 +1,7 @@
 const { getBurgerInfo, saveBurgerInfo, getBurgerLbInfo } = require("./db");
 
 async function burger(interaction) {
-  const burgerWaitDuration = 28800000;
+  const burgerWaitDuration = 21600000;
   await interaction.deferReply();
   const timeNow = Date.now();
   var burgerInfo = await getBurgerInfo();
