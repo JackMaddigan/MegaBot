@@ -4,10 +4,14 @@ const { Routes } = require("discord-api-types/v9");
 const rest = new REST({ version: "10" }).setToken(process.env.botToken);
 
 const commands = [
-  // {
-  //   name: "view",
-  //   description: "Send your submissions for this weeks weekly comp",
-  // },
+  {
+    name: "burger",
+    description: "burger",
+  },
+  {
+    name: "burgerlb",
+    description: "burger leaderboard",
+  },
   {
     name: "unsubmit",
     description: "Admin unsubmit results",

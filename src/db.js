@@ -105,6 +105,36 @@ async function deleteAllResults() {
   db.ref("/results/").remove();
 }
 
+async function getBurgerInfo() {
+  return new Promise((resolve, reject) => {
+    db.ref("/burger/")
+      .once("value", (snapshot) => {
+        var data = snapshot.val();
+        resolve(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
+}
+
+async function saveBurgerInfo(burgerInfo) {
+  db.ref("/burger/").set(burgerInfo);
+}
+
+async function getBurgerLbInfo() {
+  return new Promise((resolve, reject) => {
+    db.ref("/burger/leaderboard")
+      .once("value", (snapshot) => {
+        var data = snapshot.val();
+        resolve(data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
+}
+
 module.exports = {
   saveAverage,
   adminDeleteResult,
@@ -112,4 +142,7 @@ module.exports = {
   getWeek,
   deleteAllResults,
   saveWeek,
+  getBurgerInfo,
+  saveBurgerInfo,
+  getBurgerLbInfo,
 };

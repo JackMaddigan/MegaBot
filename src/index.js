@@ -9,6 +9,7 @@ const {
   getWeek,
   saveWeek,
 } = require("./db");
+const { burger, burgerLb } = require("./burger");
 const { sendPodium, scrambles } = require("./comp");
 const client = new Client({
   intents: [
@@ -38,6 +39,10 @@ client.on("interactionCreate", async (interaction) => {
       content: `Removed results for ${user.displayName}`,
       ephemeral: true,
     });
+  } else if (commandName === "burger") {
+    burger(interaction);
+  } else if (commandName === "burgerlb") {
+    burgerLb(interaction);
   }
 });
 
