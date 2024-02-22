@@ -27,23 +27,17 @@ async function burger(interaction) {
       }
     }
     userScore.score++;
-    console.log("burgerInfo", burgerInfo);
-    console.log("userScore", userScore);
     burgerInfo.lastTime = timeNow;
     burgerInfo.lastUsername = username;
-    console.log(burgerInfo.leaderboard);
     burgerInfo.leaderboard[uid] = userScore;
     saveBurgerInfo(burgerInfo);
   } else {
     var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
-    console.log(timeNow, timeTillBurger);
     // no
     interaction.editReply(
       `:hamburger: was already called by **${
         burgerInfo.lastUsername
-      }**. Please try again <t:${
-        timeTillBurger + Math.round(timeNow / 1000)
-      }:R>.`
+      }**. Please try again <t:${timeTillBurger + Math.round(timeNow / 1000)}>.`
     );
   }
 }
@@ -51,7 +45,6 @@ async function burger(interaction) {
 async function burgerLb(interaction) {
   await interaction.deferReply();
   const rawLbData = await getBurgerLbInfo();
-  console.log(rawLbData);
   var lbDataArray = [];
   for (const key in rawLbData) {
     lbDataArray.push(rawLbData[key]);
