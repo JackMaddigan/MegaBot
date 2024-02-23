@@ -70,11 +70,10 @@ async function burgerLb(interaction) {
     } else {
       lbDataArray[i].placing = i + 1;
     }
+    lastScore = lbDataArray[i].score;
   }
   for (let i = 0; i < lbDataArray.length; i++) {
-    text += `#${i + 1}. ${lbDataArray[i].username} **${
-      lbDataArray[i].placing
-    }**\n`;
+    text += `#${lbDataArray[i].placing}. ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;
   }
   interaction.editReply({
     embeds: [
