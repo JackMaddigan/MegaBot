@@ -124,7 +124,7 @@ async function burgerMsg(msg) {
       .then((sentMessage) => {
         setTimeout(() => {
           sentMessage.delete();
-        }, 3000);
+        }, 6000);
       })
       .catch((error) => {
         console.log(error);
