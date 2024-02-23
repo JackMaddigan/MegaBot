@@ -9,7 +9,7 @@ const {
   getWeek,
   saveWeek,
 } = require("./db");
-const { burger, burgerLb } = require("./burger");
+const { burger, burgerLb, burgerMsg, burgerLbMsg } = require("./burger");
 const { sendPodium, scrambles, currentRankings } = require("./comp");
 const client = new Client({
   intents: [
@@ -33,6 +33,15 @@ client.on("ready", () => {
   });
 });
 
+client.on("messageCreate", (message) => {
+  if (message.author.bot) return;
+  if (message.content.toLowerCase().startsWith("s!burger")) {
+    burgerMsg(message);
+  } else if (message.content.toLowerCase().startsWith("s!burgertop")) {
+    burgerLbMsg(message);
+  }
+});
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
 
@@ -48,8 +57,8 @@ client.on("interactionCreate", async (interaction) => {
       ephemeral: true,
     });
   } else if (commandName === "burger") {
-    burger(interaction);
-  } else if (commandName === "burgerlb") {
+    burger(interaction, true);
+  } else if (commandName === "burgertop") {
     burgerLb(interaction);
   } else if (commandName === "cr") {
     currentRankings(interaction);

@@ -13,7 +13,7 @@ const commands = [
     description: "Current rankings for the weekly comp",
   },
   {
-    name: "burgerlb",
+    name: "burgertop",
     description: "burger leaderboard",
   },
   {

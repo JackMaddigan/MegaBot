@@ -1,6 +1,7 @@
 var admin = require("firebase-admin");
 
 var serviceAccount = require("../db.json");
+const { time } = require("discord.js");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -135,6 +136,21 @@ async function getBurgerLbInfo() {
   });
 }
 
+async function getTimeSinceThisUserBurger(uid) {
+  return new Promise((resolve, reject) => {
+    db.ref("/burger/users/" + uid + "")
+      .once("value", (snapshot) => {
+        resolve(snapshot.val());
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  });
+}
+
+async function saveUserBurgerTime(uid, timeNow) {
+  db.ref("/burger/users/" + uid + "").set(timeNow);
+}
 module.exports = {
   saveAverage,
   adminDeleteResult,
@@ -145,4 +161,6 @@ module.exports = {
   getBurgerInfo,
   saveBurgerInfo,
   getBurgerLbInfo,
+  getTimeSinceThisUserBurger,
+  saveUserBurgerTime,
 };
