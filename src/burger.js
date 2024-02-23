@@ -112,8 +112,6 @@ async function burgerMsg(msg) {
   var timeSinceThisUserBurger = await getTimeSinceThisUserBurger(msg.author.id);
   var coolDownTime = timeNow - timeSinceThisUserBurger;
   if (coolDownTime < 15000) {
-    msg.delete();
-
     msg.channel
       .send(
         `Please wait ${
@@ -124,6 +122,7 @@ async function burgerMsg(msg) {
       .then((sentMessage) => {
         setTimeout(() => {
           sentMessage.delete();
+          msg.delete();
         }, 6000);
       })
       .catch((error) => {
