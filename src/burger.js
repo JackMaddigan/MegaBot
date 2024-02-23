@@ -19,17 +19,24 @@ async function burger(interaction) {
     // add to leaderboard
     var userScore = { score: 0, username: username };
     if (burgerInfo === null) {
+      // start of burger and nothing in db
       burgerInfo = { leaderboard: {} };
     } else {
-      if (burgerInfo.leaderboard[uid].score !== null) {
-        // if the user has an existing score then save that to userScore.score
-        userScore.score = burgerInfo.leaderboard[uid].score;
+      console.log(burgerInfo);
+      console.log(burgerInfo.leaderboard[`${uid}`]);
+      if (burgerInfo.leaderboard[`${uid}`] !== undefined) {
+        if (burgerInfo.leaderboard[`${uid}`].score !== null) {
+          // if the user has an existing score then save that to userScore.score
+          userScore.score = burgerInfo.leaderboard[`${uid}`].score;
+        }
+      } else {
+        burgerInfo.leaderboard[`${uid}`] = {};
       }
     }
     userScore.score++;
     burgerInfo.lastTime = timeNow;
     burgerInfo.lastUsername = username;
-    burgerInfo.leaderboard[uid] = userScore;
+    burgerInfo.leaderboard[`${uid}`] = userScore;
     saveBurgerInfo(burgerInfo);
   } else {
     var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
