@@ -35,9 +35,9 @@ client.on("ready", () => {
 
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
-  if (message.content.toLowerCase().startsWith("s!burger")) {
+  if (message.content.toLowerCase() === "s!burger") {
     burgerMsg(message);
-  } else if (message.content.toLowerCase().startsWith("s!burgertop")) {
+  } else if (message.content.toLowerCase() === "s!burgertop") {
     burgerLbMsg(message);
   }
 });
