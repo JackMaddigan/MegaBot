@@ -10,7 +10,7 @@ const {
   saveWeek,
 } = require("./db");
 const { burger, burgerLb } = require("./burger");
-const { sendPodium, scrambles } = require("./comp");
+const { sendPodium, scrambles, currentRankings } = require("./comp");
 const client = new Client({
   intents: [
     IntentsBitField.Flags.Guilds,
@@ -43,6 +43,8 @@ client.on("interactionCreate", async (interaction) => {
     burger(interaction);
   } else if (commandName === "burgerlb") {
     burgerLb(interaction);
+  } else if (commandName === "cr") {
+    currentRankings(interaction);
   }
 });
 

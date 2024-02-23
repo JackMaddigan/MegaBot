@@ -1,4 +1,9 @@
-const { getWeek, deleteAllResults, saveWeek } = require("./db");
+const {
+  getWeek,
+  deleteAllResults,
+  saveWeek,
+  getRankedResults,
+} = require("./db");
 const { formatTime } = require("./submit");
 const cube = require("scrambler-util");
 
@@ -104,4 +109,26 @@ async function sendAdminFullResults(results, adminChannel) {
   );
 }
 
-module.exports = { sendPodium, scrambles };
+async function currentRankings(interaction) {
+  const results = await getRankedResults();
+  var rankingsText = "";
+  for (let i = 0; i < results.length; i++) {
+    rankingsText += `> #${results[i].placing}. ${
+      results[i].username
+    } **${formatTime(results[i].average)}** average\n> *${
+      results[i].timeList
+    }*\n\n`;
+  }
+
+  interaction.reply({
+    embeds: [
+      {
+        color: 0x000, // Hex color code
+        title: "Current Comp Rankings",
+        description: rankingsText,
+      },
+    ],
+  });
+}
+
+module.exports = { sendPodium, scrambles, currentRankings };

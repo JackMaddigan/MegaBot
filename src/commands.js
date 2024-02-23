@@ -9,6 +9,10 @@ const commands = [
     description: "burger",
   },
   {
+    name: "cr",
+    description: "Current rankings for the weekly comp",
+  },
+  {
     name: "burgerlb",
     description: "burger leaderboard",
   },
