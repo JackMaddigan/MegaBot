@@ -28,7 +28,7 @@ async function sendPodium(
     }\n\n`;
   }
   const embedContent = {
-    color: 0x000, // Hex color code
+    color: 0xe5cb7a, // Hex color code
     title: title,
     description: podiumText,
     footer: footer,
@@ -123,7 +123,7 @@ async function currentRankings(interaction) {
   interaction.reply({
     embeds: [
       {
-        color: 0x000, // Hex color code
+        color: 0xe5cb7a, // Hex color code
         title: "Current Comp Rankings",
         description: rankingsText,
       },

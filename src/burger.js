@@ -78,8 +78,8 @@ async function burgerLb(interaction) {
   interaction.editReply({
     embeds: [
       {
-        color: 0x000, // Hex color code
-        title: "Burger Rankings",
+        color: 0xe5cb7a, // Hex color code
+        title: ":hamburger: Burger Leaderboard :hamburger:",
         description: text,
       },
     ],

@@ -25,6 +25,14 @@ client.login(process.env.botToken).then(() => {
   console.log("MegaBot is online!");
 });
 
+client.on("ready", () => {
+  const burgerEmoji = "🍔";
+  client.user.setPresence({
+    activities: [{ name: burgerEmoji }],
+    // status: "idle",
+  });
+});
+
 client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
 
