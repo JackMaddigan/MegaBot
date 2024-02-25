@@ -149,8 +149,6 @@ async function burgerMsg(msg) {
         // start of burger and nothing in db
         burgerInfo = { leaderboard: {} };
       } else {
-        console.log(burgerInfo);
-        console.log(burgerInfo.leaderboard[`${uid}`]);
         if (burgerInfo.leaderboard[`${uid}`] !== undefined) {
           if (burgerInfo.leaderboard[`${uid}`].score !== null) {
             // if the user has an existing score then save that to userScore.score
