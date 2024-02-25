@@ -61,7 +61,7 @@ async function burger(interaction) {
       var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
       // no
       interaction.editReply(
-        `:hamburger: was already called by **${
+        `Burger was already called by **${
           burgerInfo.lastUsername
         }**. and can be called again in ${
           Math.round((timeTillBurger / 3600) * 100) / 100
@@ -169,7 +169,7 @@ async function burgerMsg(msg) {
       var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
       // no
       msg.channel.send(
-        `:hamburger: was already called by **${
+        `Burger was already called by **${
           burgerInfo.lastUsername
         }**. and can be called again in ${
           Math.round((timeTillBurger / 3600) * 100) / 100
