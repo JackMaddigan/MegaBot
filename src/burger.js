@@ -169,7 +169,7 @@ async function burgerMsg(msg) {
       msg.channel.send(
         `Burger was already called by **${
           burgerInfo.lastUsername
-        }**. and can be called again in ${
+        }**, and can be called again in ${
           Math.round((timeTillBurger / 3600) * 100) / 100
         } hours.`
       );
