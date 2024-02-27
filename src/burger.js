@@ -140,7 +140,7 @@ async function burgerMsg(msg) {
     if (difference >= burgerWaitDuration) {
       // yes
       const uid = msg.author.id;
-      const username = msg.author.displayName;
+      const username = msg.author.globalName;
       msg.channel.send(":hamburger:");
       // add to leaderboard
       var userScore = { score: 0, username: username };
