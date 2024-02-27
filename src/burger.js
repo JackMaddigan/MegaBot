@@ -19,11 +19,18 @@ async function burgerMsg(msg) {
       );
 
       // Use async function with setTimeout
+      // Use async function with setTimeout
+      // Wait for the delay to complete
       await delay(3000);
 
-      // Delete messages after the delay
-      await sentMessage.delete();
-      await msg.delete();
+      // Perform deletions concurrently
+      await Promise.all([sentMessage.delete(), msg.delete()]);
+
+      // await delay(3000);
+
+      // // Delete messages after the delay
+      // await sentMessage.delete();
+      // await msg.delete();
     } catch (error) {
       console.error(error);
     }
