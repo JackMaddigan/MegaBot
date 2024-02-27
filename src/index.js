@@ -36,6 +36,7 @@ client.on("ready", () => {
 client.on("messageCreate", (message) => {
   if (message.author.bot) return;
   if (message.content.toLowerCase() === "s!burger") {
+    console.log("burger");
     burgerMsg(message);
   } else if (message.content.toLowerCase() === "s!burgertop") {
     burgerLbMsg(message);
@@ -63,6 +64,13 @@ client.on("interactionCreate", async (interaction) => {
   } else if (commandName === "cr") {
     currentRankings(interaction);
   }
+});
+
+client.on("rateLimit", (rateLimitInfo) => {
+  console.log(
+    `Rate limited for ${rateLimitInfo.route}. Retrying in ${rateLimitInfo.timeout} milliseconds.`
+  );
+  // Implement retry logic here
 });
 
 // “At 22:00 on Tuesday.”

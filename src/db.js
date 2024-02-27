@@ -136,20 +136,39 @@ async function getBurgerLbInfo() {
   });
 }
 
+// async function getTimeSinceThisUserBurger(uid) {
+//   return new Promise((resolve, reject) => {
+//     db.ref("/burger/users/" + uid + "")
+//       .once("value", (snapshot) => {
+//         resolve(snapshot.val());
+//       })
+//       .catch((error) => {
+//         console.log(error);
+//       });
+//   });
+// }
+
+// async function saveUserBurgerTime(uid, timeNow) {
+//   db.ref("/burger/users/" + uid + "").set(timeNow);
+// }
+
+const cooldowns = {};
+
 async function getTimeSinceThisUserBurger(uid) {
-  return new Promise((resolve, reject) => {
-    db.ref("/burger/users/" + uid + "")
-      .once("value", (snapshot) => {
-        resolve(snapshot.val());
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  });
+  const lastCommandTime = cooldowns[uid];
+  if (lastCommandTime === undefined) {
+    lastCommandTime === 0;
+  }
+  const currentTime = Date.now();
+  const diff = currentTime - lastCommandTime;
+  console.log("diff:", diff);
+
+  return diff;
 }
 
-async function saveUserBurgerTime(uid, timeNow) {
-  db.ref("/burger/users/" + uid + "").set(timeNow);
+async function saveUserBurgerTime(uid) {
+  const currentTime = Date.now();
+  cooldowns[uid] = currentTime;
 }
 module.exports = {
   saveAverage,

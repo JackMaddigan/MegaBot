@@ -109,8 +109,7 @@ async function burgerLb(interaction) {
 async function burgerMsg(msg) {
   const burgerWaitDuration = 21600000;
   const timeNow = Date.now();
-  var timeSinceThisUserBurger = await getTimeSinceThisUserBurger(msg.author.id);
-  var coolDownTime = timeNow - timeSinceThisUserBurger;
+  var coolDownTime = await getTimeSinceThisUserBurger(msg.author.id);
   if (coolDownTime < 15000) {
     msg.channel
       .send(
@@ -123,7 +122,7 @@ async function burgerMsg(msg) {
         setTimeout(() => {
           sentMessage.delete();
           msg.delete();
-        }, 6000);
+        }, 3000);
       })
       .catch((error) => {
         console.log(error);
