@@ -33,13 +33,13 @@ client.on("ready", () => {
   });
 });
 
-client.on("messageCreate", (message) => {
+client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.content.toLowerCase() === "s!burger") {
     console.log("burger");
-    burgerMsg(message);
+    await burgerMsg(message);
   } else if (message.content.toLowerCase() === "s!burgertop") {
-    burgerLbMsg(message);
+    await burgerLbMsg(message);
   }
 });
 

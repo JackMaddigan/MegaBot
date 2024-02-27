@@ -106,34 +106,53 @@ async function deleteAllResults() {
   db.ref("/results/").remove();
 }
 
+var burgerInfoCache = {};
+
 async function getBurgerInfo() {
-  return new Promise((resolve, reject) => {
-    db.ref("/burger/")
-      .once("value", (snapshot) => {
-        var data = snapshot.val();
-        resolve(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  });
+  try {
+    // Check if burgerInfo is already in the cache
+    if (burgerInfoCache.data) {
+      console.log("cache");
+      return burgerInfoCache.data;
+    }
+
+    // If not in the cache, fetch it from the database
+    console.log("db");
+
+    const snapshot = await db.ref("/burger/").once("value");
+    const burgerInfo = snapshot.val();
+
+    // Update the cache with the fetched data
+    burgerInfoCache.data = burgerInfo;
+
+    return burgerInfo;
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error to propagate it
+  }
 }
 
 async function saveBurgerInfo(burgerInfo) {
-  db.ref("/burger/").set(burgerInfo);
+  try {
+    // Save to the database
+    await db.ref("/burger/").set(burgerInfo);
+
+    // Update the cache with the new data
+    burgerInfoCache.data = burgerInfo;
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error to propagate it
+  }
 }
 
 async function getBurgerLbInfo() {
-  return new Promise((resolve, reject) => {
-    db.ref("/burger/leaderboard")
-      .once("value", (snapshot) => {
-        var data = snapshot.val();
-        resolve(data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  });
+  try {
+    const snapshot = await db.ref("/burger/leaderboard").once("value");
+    return snapshot.val();
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error to propagate it
+  }
 }
 
 // async function getTimeSinceThisUserBurger(uid) {
