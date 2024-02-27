@@ -161,7 +161,6 @@ async function getTimeSinceThisUserBurger(uid) {
   }
   const currentTime = Date.now();
   const diff = currentTime - lastCommandTime;
-  console.log("diff:", diff);
 
   return diff;
 }
