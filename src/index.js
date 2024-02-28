@@ -36,7 +36,6 @@ client.on("ready", () => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
   if (message.content.toLowerCase() === "s!burger") {
-    console.log("burger");
     await burgerMsg(message);
   } else if (message.content.toLowerCase() === "s!burgertop") {
     await burgerLbMsg(message);
@@ -47,7 +46,6 @@ client.on("interactionCreate", async (interaction) => {
   if (!interaction.isCommand()) return;
 
   const commandName = interaction.commandName;
-  console.log(commandName);
   if (commandName === "submit") {
     handleResult(interaction);
   } else if (commandName === "unsubmit") {

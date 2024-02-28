@@ -12,7 +12,7 @@ async function burgerMsg(msg) {
   var coolDownTime = await getTimeSinceThisUserBurger(msg.author.id);
   if (coolDownTime < 15000) {
     try {
-      const sentMessage = await msg.channel.send(
+      const sentMessage = await msg.reply(
         `Please wait ${
           Math.round((15000 - coolDownTime) / 100) / 10
         } more seconds before you try to call burger again.`
@@ -21,10 +21,12 @@ async function burgerMsg(msg) {
       // Use async function with setTimeout
       // Use async function with setTimeout
       // Wait for the delay to complete
-      await delay(3000);
+      delay(3000);
+      sentMessage.delete();
+      msg.delete();
 
       // Perform deletions concurrently
-      await Promise.all([sentMessage.delete(), msg.delete()]);
+      // await Promise.all([sentMessage.delete(), msg.delete()]);
 
       // await delay(3000);
 
@@ -48,7 +50,7 @@ async function burgerMsg(msg) {
       // yes
       const uid = msg.author.id;
       const username = msg.author.globalName;
-      msg.channel.send(":hamburger:");
+      msg.reply(":hamburger:");
       // add to leaderboard
       var userScore = { score: 0, username: username };
       if (burgerInfo === null) {
@@ -72,7 +74,7 @@ async function burgerMsg(msg) {
     } else {
       var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
       // no
-      msg.channel.send(
+      msg.reply(
         `Burger was already called by **${
           burgerInfo.lastUsername
         }**, and can be called again in ${
@@ -106,7 +108,7 @@ async function burgerLbMsg(msg) {
   for (let i = 0; i < lbDataArray.length; i++) {
     text += `#${lbDataArray[i].placing}. ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;
   }
-  msg.channel.send({
+  msg.reply({
     embeds: [
       {
         color: 0x00ff00, // Hex color code

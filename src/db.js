@@ -112,12 +112,12 @@ async function getBurgerInfo() {
   try {
     // Check if burgerInfo is already in the cache
     if (burgerInfoCache.data) {
-      console.log("cache");
+      // console.log("cache");
       return burgerInfoCache.data;
     }
 
     // If not in the cache, fetch it from the database
-    console.log("db");
+    // console.log("db");
 
     const snapshot = await db.ref("/burger/").once("value");
     const burgerInfo = snapshot.val();
