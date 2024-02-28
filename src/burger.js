@@ -21,7 +21,7 @@ async function burgerMsg(msg) {
       // Use async function with setTimeout
       // Use async function with setTimeout
       // Wait for the delay to complete
-      delay(3000);
+      await delay(3000);
       sentMessage.delete();
       msg.delete();
 
