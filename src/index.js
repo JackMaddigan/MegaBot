@@ -8,8 +8,15 @@ const {
   getRankedResults,
   getWeek,
   saveWeek,
+  getBurgerInfo,
 } = require("./db");
-const { burger, burgerLb, burgerMsg, burgerLbMsg } = require("./burger");
+const {
+  burger,
+  burgerLb,
+  burgerMsg,
+  burgerLbMsg,
+  updateBurgerRoles,
+} = require("./burger");
 const { sendPodium, scrambles, currentRankings } = require("./comp");
 const client = new Client({
   intents: [
@@ -64,13 +71,6 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-client.on("rateLimit", (rateLimitInfo) => {
-  console.log(
-    `Rate limited for ${rateLimitInfo.route}. Retrying in ${rateLimitInfo.timeout} milliseconds.`
-  );
-  // Implement retry logic here
-});
-
 // “At 22:00 on Tuesday.”
 cron.schedule("0 22 * * 1", () => {
   manageComp();
@@ -95,3 +95,13 @@ async function manageComp() {
     sendPodium(results, resultsChannel, scramblesChannel, adminChannel);
   }
 }
+
+// async function test() {
+//   const burgerInfo = await getBurgerInfo();
+//   const guild = client.guilds.cache.get(process.env.guildId);
+//   try {
+//     updateBurgerRoles(burgerInfo, guild);
+//   } catch (error) {
+//     console.log(error);
+//   }
+// }

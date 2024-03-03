@@ -6,6 +6,12 @@ const {
   saveUserBurgerTime,
 } = require("./db");
 
+const roles = [
+  process.env["burger-leader"],
+  process.env["burger-second"],
+  process.env["burger-third"],
+];
+
 async function burgerMsg(msg) {
   const burgerWaitDuration = 21600000;
   const timeNow = Date.now();
@@ -71,6 +77,11 @@ async function burgerMsg(msg) {
       burgerInfo.lastUsername = username;
       burgerInfo.leaderboard[`${uid}`] = userScore;
       saveBurgerInfo(burgerInfo);
+      try {
+        updateBurgerRoles(burgerInfo, msg.guild);
+      } catch (error) {
+        console.log(error);
+      }
     } else {
       var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
       // no
@@ -86,25 +97,9 @@ async function burgerMsg(msg) {
 }
 
 async function burgerLbMsg(msg) {
-  const rawLbData = await getBurgerLbInfo();
-  var lbDataArray = [];
-  for (const key in rawLbData) {
-    lbDataArray.push(rawLbData[key]);
-  }
-  lbDataArray.sort((a, b) => {
-    return b.score - a.score;
-  });
-  // now sorted, add placing index
-  var lastScore = -1;
+  const lbDataArray = await orderBurgerRankings();
   var text = "";
-  for (let i = 0; i < lbDataArray.length; i++) {
-    if (lastScore === lbDataArray[i].score) {
-      lbDataArray[i].placing = lbDataArray[i - 1].placing;
-    } else {
-      lbDataArray[i].placing = i + 1;
-    }
-    lastScore = lbDataArray[i].score;
-  }
+
   for (let i = 0; i < lbDataArray.length; i++) {
     text += `#${lbDataArray[i].placing}. ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;
   }
@@ -119,11 +114,121 @@ async function burgerLbMsg(msg) {
   });
 }
 
-module.exports = {
-  burgerMsg,
-  burgerLbMsg,
-};
+async function orderBurgerRankings() {
+  const rawLbData = await getBurgerLbInfo();
+  console.log(rawLbData);
+  var lbDataArray = [];
+  for (const key in rawLbData) {
+    rawLbData[key].uid = key;
+    lbDataArray.push(rawLbData[key]);
+  }
+  lbDataArray.sort((a, b) => {
+    return b.score - a.score;
+  });
+  // now sorted, add placing index
+  var lastScore = -1;
+  for (let i = 0; i < lbDataArray.length; i++) {
+    if (lastScore === lbDataArray[i].score) {
+      lbDataArray[i].placing = lbDataArray[i - 1].placing;
+    } else {
+      lbDataArray[i].placing = i + 1;
+    }
+    lastScore = lbDataArray[i].score;
+  }
+  return lbDataArray;
+}
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+async function updateBurgerRoles(burgerInfo, guild) {
+  const oldRoleHavers = burgerInfo.lastRoleHavers;
+  if (oldRoleHavers !== undefined) {
+    // remove old roles
+
+    for (const uid in oldRoleHavers) {
+      await removeRolesFromUser(guild, uid);
+    }
+  }
+  // now give the roles to the new top ones
+
+  const burgerRankings = await orderBurgerRankings();
+  var placingsArray = [[], [], []];
+  console.log(burgerRankings);
+  for (let i = 0; i < burgerRankings.length; i++) {
+    if (burgerRankings[i].placing === 1) {
+      placingsArray[0].push(burgerRankings[i].uid);
+    } else if (burgerRankings[i].placing === 2) {
+      placingsArray[1].push(burgerRankings[i].uid);
+    } else if (burgerRankings[i].placing === 3) {
+      placingsArray[2].push(burgerRankings[i].uid);
+    }
+  }
+  console.log(placingsArray);
+  // placingsArray contains 3 arrays, each with all the uids of that placing
+  // now get the right amount of podium people for roles to be added and add them to the rolestogiveobject
+  var rolesToGiveObject = {};
+  for (let j = 0; j < placingsArray[0].length; j++) {
+    rolesToGiveObject[placingsArray[0][j]] = roles[0];
+  }
+  if (placingsArray[0].length < 3) {
+    for (let j = 0; j < placingsArray[1].length; j++) {
+      rolesToGiveObject[placingsArray[1][j]] = roles[1];
+    }
+    if (placingsArray[0].length + placingsArray[1].length < 3) {
+      for (let j = 0; j < placingsArray[2].length; j++) {
+        rolesToGiveObject[placingsArray[2][j]] = roles[2];
+      }
+    }
+  }
+  // object might look something like this
+  /**
+   {
+    '474178859584061461': 1,
+    '542768282101612547': 2,
+    '909438741351895050': 2
+  `}
+ */
+  for (const uid in rolesToGiveObject) {
+    // console.log(rolesToGiveObject[uid]);
+    await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
+  }
+  // now save to lastRoleHavers
+}
+
+async function removeRolesFromUser(guild, uid) {
+  try {
+    console.log(uid);
+    // Fetch the member using the user ID
+    const member = await guild.members.fetch(uid);
+
+    // Remove the specified roles
+    await member.roles.remove(roles);
+
+    console.log(`Removed roles from ${member.user.tag}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+  }
+}
+
+async function giveUsersRoles(guild, uid, role) {
+  try {
+    console.log(uid);
+    // Fetch the member using the user ID
+    const member = await guild.members.fetch(uid);
+
+    // Remove the specified roles
+    await member.roles.add(role);
+
+    console.log(`Removed roles from ${member.user.tag}`);
+  } catch (error) {
+    console.error(`Error: ${error.message}`);
+  }
+}
+
+module.exports = {
+  burgerMsg,
+  burgerLbMsg,
+  updateBurgerRoles,
+};
