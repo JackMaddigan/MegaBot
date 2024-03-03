@@ -117,7 +117,6 @@ async function burgerLbMsg(msg) {
 
 async function orderBurgerRankings() {
   const rawLbData = await getBurgerLbInfo();
-  console.log(rawLbData);
   var lbDataArray = [];
   for (const key in rawLbData) {
     rawLbData[key].uid = key;
@@ -156,7 +155,6 @@ async function updateBurgerRoles(burgerInfo, guild) {
 
   const burgerRankings = await orderBurgerRankings();
   var placingsArray = [[], [], []];
-  console.log(burgerRankings);
   for (let i = 0; i < burgerRankings.length; i++) {
     if (burgerRankings[i].placing === 1) {
       placingsArray[0].push(burgerRankings[i].uid);
@@ -166,7 +164,6 @@ async function updateBurgerRoles(burgerInfo, guild) {
       placingsArray[2].push(burgerRankings[i].uid);
     }
   }
-  console.log(placingsArray);
   // placingsArray contains 3 arrays, each with all the uids of that placing
   // now get the right amount of podium people for roles to be added and add them to the rolestogiveobject
   var rolesToGiveObject = {};
@@ -193,7 +190,6 @@ async function updateBurgerRoles(burgerInfo, guild) {
  */
   var data = {};
   for (const uid in rolesToGiveObject) {
-    // console.log(rolesToGiveObject[uid]);
     await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
     data[uid] = roles[rolesToGiveObject[uid]];
   }
@@ -204,7 +200,6 @@ async function updateBurgerRoles(burgerInfo, guild) {
 
 async function removeRolesFromUser(guild, uid) {
   try {
-    console.log(uid);
     // Fetch the member using the user ID
     const member = await guild.members.fetch(uid);
 
@@ -219,14 +214,13 @@ async function removeRolesFromUser(guild, uid) {
 
 async function giveUsersRoles(guild, uid, role) {
   try {
-    console.log(uid);
     // Fetch the member using the user ID
     const member = await guild.members.fetch(uid);
 
     // Remove the specified roles
     await member.roles.add(role);
 
-    console.log(`Removed roles from ${member.user.tag}`);
+    console.log(`Added role for ${member.user.tag}`);
   } catch (error) {
     console.error(`Error: ${error.message}`);
   }
