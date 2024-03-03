@@ -188,19 +188,11 @@ async function updateBurgerRoles(burgerInfo, guild) {
     '909438741351895050': 2
   `}
  */
-  var data = {};
   for (const uid in rolesToGiveObject) {
     await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
-    if (rolesToGiveObject[uid] === 1) {
-      data[uid] = roles[0];
-    } else if (rolesToGiveObject[uid] === 2) {
-      data[uid] = roles[1];
-    } else {
-      data[uid] = roles[2];
-    }
   }
   // now save to lastRoleHavers
-  console.log(data);
+  console.log(rolesToGiveObject);
   saveUsersRoles(data);
 }
 
