@@ -192,8 +192,8 @@ async function updateBurgerRoles(burgerInfo, guild) {
     await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
   }
   // now save to lastRoleHavers
-  console.log(rolesToGiveObject);
-  saveUsersRoles(data);
+  // console.log(rolesToGiveObject);
+  saveUsersRoles(rolesToGiveObject);
 }
 
 async function removeRolesFromUser(guild, uid) {
