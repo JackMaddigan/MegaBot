@@ -188,6 +188,11 @@ async function saveUserBurgerTime(uid) {
   const currentTime = Date.now();
   cooldowns[uid] = currentTime;
 }
+
+async function saveUsersRoles(data) {
+  db.ref("/burger/lastRoleHavers/").set(data);
+}
+
 module.exports = {
   saveAverage,
   adminDeleteResult,
@@ -200,4 +205,5 @@ module.exports = {
   getBurgerLbInfo,
   getTimeSinceThisUserBurger,
   saveUserBurgerTime,
+  saveUsersRoles,
 };

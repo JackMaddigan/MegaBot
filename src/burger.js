@@ -4,6 +4,7 @@ const {
   getBurgerLbInfo,
   getTimeSinceThisUserBurger,
   saveUserBurgerTime,
+  saveUsersRoles,
 } = require("./db");
 
 const roles = [
@@ -190,11 +191,15 @@ async function updateBurgerRoles(burgerInfo, guild) {
     '909438741351895050': 2
   `}
  */
+  var data = {};
   for (const uid in rolesToGiveObject) {
     // console.log(rolesToGiveObject[uid]);
     await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
+    data[uid] = roles[rolesToGiveObject[uid]];
   }
   // now save to lastRoleHavers
+  console.log(data);
+  saveUsersRoles(data);
 }
 
 async function removeRolesFromUser(guild, uid) {
