@@ -46,6 +46,8 @@ client.on("messageCreate", async (message) => {
     await burgerMsg(message);
   } else if (message.content.toLowerCase() === "s!burgertop") {
     await burgerLbMsg(message);
+  } else if (message.content === "ifhadusgfucdcacarfyrewadgacs") {
+    initialRoles();
   }
 });
 
@@ -96,12 +98,12 @@ async function manageComp() {
   }
 }
 
-// async function test() {
-//   const burgerInfo = await getBurgerInfo();
-//   const guild = client.guilds.cache.get(process.env.guildId);
-//   try {
-//     updateBurgerRoles(burgerInfo, guild);
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
+async function initialRoles() {
+  const burgerInfo = await getBurgerInfo();
+  const guild = client.guilds.cache.get(process.env.guildId);
+  try {
+    updateBurgerRoles(burgerInfo, guild);
+  } catch (error) {
+    console.log(error);
+  }
+}
