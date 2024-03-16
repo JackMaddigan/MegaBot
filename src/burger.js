@@ -75,8 +75,8 @@ async function burgerMsg(msg) {
       }
       userScore.score++;
       // add or subtract random time
-      let randomTime = Math.floor(Math.random() * 20001) - 10000;
-      burgerInfo.lastTime = timeNow + randomTime;
+      // let randomTime = Math.floor(Math.random() * 20001) - 10000;
+      burgerInfo.lastTime = timeNow; // + randomTime;
       burgerInfo.lastUsername = username;
       burgerInfo.leaderboard[`${uid}`] = userScore;
       saveBurgerInfo(burgerInfo);
