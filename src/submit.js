@@ -154,4 +154,5 @@ function returnCircledTimeList(solves) {
 module.exports = {
   handleResult,
   formatTime,
+  returnCircledTimeList,
 };

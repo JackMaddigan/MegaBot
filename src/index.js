@@ -17,6 +17,7 @@ const {
   burgerLbMsg,
   updateBurgerRoles,
 } = require("./burger");
+const { getFilteredRecords } = require("./megaRecords");
 const { sendPodium, scrambles, currentRankings } = require("./comp");
 const client = new Client({
   intents: [
@@ -52,6 +53,11 @@ client.on("messageCreate", async (message) => {
     message.channel.id === process.env["bot-channel"]
   ) {
     await burgerLbMsg(message);
+  } else if (message.content === "record") {
+    const recordsChannel = client.channels.cache.get(
+      process.env.megaRecordsChannelId
+    );
+    getFilteredRecords(recordsChannel);
   }
 });
 

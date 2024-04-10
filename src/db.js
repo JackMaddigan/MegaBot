@@ -155,6 +155,24 @@ async function getBurgerLbInfo() {
   }
 }
 
+async function getData(path) {
+  try {
+    const snapshot = await db.ref(path).once("value");
+    return snapshot.val();
+  } catch (error) {
+    console.error(error);
+    throw error; // Rethrow the error to propagate it
+  }
+}
+
+async function saveData(path, data) {
+  db.ref(path)
+    .set(data)
+    .catch((error) => {
+      console.error(error);
+    });
+}
+
 // async function getTimeSinceThisUserBurger(uid) {
 //   return new Promise((resolve, reject) => {
 //     db.ref("/burger/users/" + uid + "")
@@ -206,4 +224,6 @@ module.exports = {
   getTimeSinceThisUserBurger,
   saveUserBurgerTime,
   saveUsersRoles,
+  getData,
+  saveData,
 };
