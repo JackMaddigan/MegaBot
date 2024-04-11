@@ -18,6 +18,8 @@ const {
   updateBurgerRoles,
 } = require("./burger");
 const { getFilteredRecords } = require("./megaRecords");
+const { checkRankings } = require("./megaTopResults");
+
 const { sendPodium, scrambles, currentRankings } = require("./comp");
 const client = new Client({
   intents: [
@@ -53,11 +55,11 @@ client.on("messageCreate", async (message) => {
     message.channel.id === process.env["bot-channel"]
   ) {
     await burgerLbMsg(message);
-  } else if (message.content === "record") {
+  } else if (message.content === "a") {
     const recordsChannel = client.channels.cache.get(
       process.env.megaRecordsChannelId
     );
-    getFilteredRecords(recordsChannel);
+    checkRankings(recordsChannel);
   }
 });
 
@@ -86,6 +88,25 @@ client.on("interactionCreate", async (interaction) => {
 // “At 22:00 on Tuesday.”
 cron.schedule("0 22 * * 1", () => {
   manageComp();
+});
+
+// every 12 hours get all top player results
+cron.schedule("0 */12 * * *", () => {
+  console.log("Checking for top player results...");
+
+  const recordsChannel = client.channels.cache.get(
+    process.env.megaRecordsChannelId
+  );
+  checkRankings(recordsChannel);
+});
+
+// Every 15 minutes check for records
+cron.schedule("*/20 * * * *", () => {
+  console.log("Checking for records...");
+  const recordsChannel = client.channels.cache.get(
+    process.env.megaRecordsChannelId
+  );
+  getFilteredRecords(recordsChannel);
 });
 
 async function manageComp() {

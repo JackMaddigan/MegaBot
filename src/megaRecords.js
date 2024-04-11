@@ -86,15 +86,14 @@ async function getFilteredRecords(recordsChannel) {
   //   records are all new and need to be sent
   console.log(JSON.stringify(filteredRecords, null, 2));
 
-  //    Add all the new records to the old records and save to db and send embed
   const timestamp = Date.now();
-  //   get channel
 
+  //    Add all the new records to the old records and save to db and send embed
   for (let i = 0; i < filteredRecords.length; i++) {
     oldRecords[filteredRecords[i].id] = timestamp;
     createAndSendEmbed(filteredRecords[i], recordsChannel);
   }
-  //   saveData(oldRecordsPath, oldRecords);
+  saveData(oldRecordsPath, oldRecords);
 
   //    Loop through records and create embed and send
 }
@@ -126,23 +125,7 @@ async function createAndSendEmbed(record, recordsChannel) {
       } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}`
     )
     .setThumbnail(getPicPath[record.tag])
-    // .addFields(
-    //   { name: "Regular field title", value: "Some value here" },
-    //   { name: "\u200B", value: "\u200B" },
-    //   { name: "Inline field title", value: "Some value here", inline: true },
-    //   { name: "Inline field title", value: "Some value here", inline: true }
-    // )
-    // .addFields({
-    //   name: "Inline field title",
-    //   value: "Some value here",
-    //   inline: true,
-    // })
-    // .setImage("https://i.imgur.com/AfFp7pu.png")
     .setTimestamp();
-  // .setFooter({
-  //   text: "Some footer text here",
-  //   iconURL: "https://i.imgur.com/AfFp7pu.png",
-  // });
 
   recordsChannel.send({ embeds: [recordEmbed] });
 }
@@ -159,7 +142,7 @@ const getPicPath = {
   NR: "https://raw.githubusercontent.com/JackMaddigan/images/main/nr.png",
 };
 
-console.log(centiToTime(6303));
+// console.log(centiToTime(6303));
 
 function centiToTime(centi) {
   if (centi === 0 || centi === -2) {
@@ -177,4 +160,5 @@ function centiToTime(centi) {
 
 module.exports = {
   getFilteredRecords,
+  centiToTime,
 };
