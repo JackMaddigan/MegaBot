@@ -55,11 +55,6 @@ client.on("messageCreate", async (message) => {
     message.channel.id === process.env["bot-channel"]
   ) {
     await burgerLbMsg(message);
-  } else if (message.content === "a") {
-    const recordsChannel = client.channels.cache.get(
-      process.env.megaRecordsChannelId
-    );
-    checkRankings(recordsChannel);
   }
 });
 
