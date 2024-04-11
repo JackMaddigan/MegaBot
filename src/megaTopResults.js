@@ -124,8 +124,12 @@ async function sendTopResultEmbeds(results, channel) {
             process.env.top25Ping
           }>`
         )
-        // .setThumbnail(getPicPath[record.tag])
-        .setTimestamp();
+        .setFooter({
+          text: "(Recently)",
+        });
+
+      // .setThumbnail(getPicPath[record.tag])
+      // .setTimestamp();
 
       channel.send({ embeds: [resultEmbed] }).catch((error) => {
         console.error(error);
