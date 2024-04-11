@@ -103,6 +103,8 @@ cron.schedule("0 */12 * * *", () => {
 // Every 15 minutes check for records
 cron.schedule("*/20 * * * *", () => {
   console.log("Checking for records...");
+  const currentTime = new Date();
+  console.log(currentTime);
   const recordsChannel = client.channels.cache.get(
     process.env.megaRecordsChannelId
   );

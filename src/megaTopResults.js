@@ -120,7 +120,9 @@ async function sendTopResultEmbeds(results, channel) {
         .setDescription(
           ` :flag_${userData.country.toLowerCase()}: WR${
             results[i].rank.world
-          } CR${results[i].rank.continent} NR${results[i].rank.country}`
+          } CR${results[i].rank.continent} NR${results[i].rank.country}\n<@&${
+            process.env.top25Ping
+          }>`
         )
         // .setThumbnail(getPicPath[record.tag])
         .setTimestamp();

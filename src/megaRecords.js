@@ -99,6 +99,7 @@ async function getFilteredRecords(recordsChannel) {
 }
 
 async function createAndSendEmbed(record, recordsChannel) {
+  const roleToPing = getRoleToPing[record.tag];
   console.log(record.result.attempts);
   const timeList = `*(${centiToTime(
     record.result.attempts[0].result
@@ -122,7 +123,9 @@ async function createAndSendEmbed(record, recordsChannel) {
     .setDescription(
       `${
         record.result.person.country.name
-      } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}`
+      } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}\n<@&${
+        process.env.top25Ping
+      }>`
     )
     .setThumbnail(getPicPath[record.tag])
     .setTimestamp();
@@ -140,6 +143,12 @@ const getPicPath = {
   WR: "https://raw.githubusercontent.com/JackMaddigan/images/main/wr.png",
   CR: "https://raw.githubusercontent.com/JackMaddigan/images/main/cr.png",
   NR: "https://raw.githubusercontent.com/JackMaddigan/images/main/nr.png",
+};
+
+const getRoleToPing = {
+  WR: process.env.wrPing,
+  CR: process.env.crPing,
+  NR: process.env.nrPing,
 };
 
 // console.log(centiToTime(6303));
