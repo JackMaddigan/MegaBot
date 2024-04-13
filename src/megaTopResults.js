@@ -124,8 +124,9 @@ async function sendTopResultEmbeds(results, channel) {
             process.env.top25Ping
           }>`
         )
+        .setTimestamp()
         .setFooter({
-          text: "(Recently)",
+          text: "Recently ",
         });
 
       // .setThumbnail(getPicPath[record.tag])

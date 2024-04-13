@@ -124,7 +124,7 @@ async function createAndSendEmbed(record, recordsChannel) {
       `${
         record.result.person.country.name
       } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}\n<@&${
-        process.env.top25Ping
+        getRoleToPing[record.tag]
       }>`
     )
     .setThumbnail(getPicPath[record.tag])
