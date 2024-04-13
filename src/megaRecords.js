@@ -123,14 +123,15 @@ async function createAndSendEmbed(record, recordsChannel) {
     .setDescription(
       `${
         record.result.person.country.name
-      } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}\n<@&${
-        getRoleToPing[record.tag]
-      }>`
+      } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}`
     )
     .setThumbnail(getPicPath[record.tag])
     .setTimestamp();
 
-  recordsChannel.send({ embeds: [recordEmbed] });
+  recordsChannel.send({
+    embeds: [recordEmbed],
+    content: `<@&${getRoleToPing[record.tag]}>`,
+  });
 }
 
 const getColorOfTag = {

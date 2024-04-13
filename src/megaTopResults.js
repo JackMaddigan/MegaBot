@@ -120,9 +120,7 @@ async function sendTopResultEmbeds(results, channel) {
         .setDescription(
           ` :flag_${userData.country.toLowerCase()}: WR${
             results[i].rank.world
-          } CR${results[i].rank.continent} NR${results[i].rank.country}\n<@&${
-            process.env.top25Ping
-          }>`
+          } CR${results[i].rank.continent} NR${results[i].rank.country}`
         )
         .setTimestamp()
         .setFooter({
@@ -132,9 +130,14 @@ async function sendTopResultEmbeds(results, channel) {
       // .setThumbnail(getPicPath[record.tag])
       // .setTimestamp();
 
-      channel.send({ embeds: [resultEmbed] }).catch((error) => {
-        console.error(error);
-      });
+      channel
+        .send({
+          embeds: [resultEmbed],
+          content: `<@&${process.env.top25Ping}>`,
+        })
+        .catch((error) => {
+          console.error(error);
+        });
     }
   }
 }
