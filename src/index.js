@@ -1,7 +1,12 @@
 require("dotenv").config();
 const cron = require("node-cron");
 
-const { Client, IntentsBitField, Partials } = require("discord.js");
+const {
+  Client,
+  IntentsBitField,
+  Partials,
+  PermissionsBitField,
+} = require("discord.js");
 const { handleResult } = require("./submit");
 const {
   adminDeleteResult,
@@ -56,7 +61,10 @@ client.on("messageCreate", async (message) => {
       message.channel.id === process.env["bot-channel"]
     ) {
       await burgerLbMsg(message);
-    } else if (message.content.toLowerCase() === "s!checkrecords") {
+    } else if (
+      message.content.toLowerCase() === "s!checkrecords" &&
+      message.member.permissions.has(PermissionsBitField.Flags.BanMembers)
+    ) {
       doRecordCheckManual();
     }
   } catch (error) {
