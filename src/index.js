@@ -55,6 +55,8 @@ client.on("messageCreate", async (message) => {
     message.channel.id === process.env["bot-channel"]
   ) {
     await burgerLbMsg(message);
+  } else if (message.content.toLowerCase() === "s!checkrecords") {
+    doRecordCheckManual();
   }
 });
 
@@ -105,6 +107,16 @@ cron.schedule("*/15 * * * *", () => {
   );
   getFilteredRecords(recordsChannel);
 });
+
+async function doRecordCheckManual() {
+  console.log("Checking for records...");
+  const currentTime = new Date();
+  console.log(currentTime);
+  const recordsChannel = client.channels.cache.get(
+    process.env.megaRecordsChannelId
+  );
+  getFilteredRecords(recordsChannel);
+}
 
 async function manageComp() {
   // var guild = client.guilds.cache.get(process.env.guildId);
