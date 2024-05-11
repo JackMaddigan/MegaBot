@@ -44,47 +44,59 @@ client.on("ready", () => {
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
-  if (
-    message.content.toLowerCase() === "s!burger" &&
-    message.channel.id === process.env["bot-channel"]
-  ) {
-    await burgerMsg(message);
-  } else if (
-    message.content.toLowerCase() === "s!burgertop" &&
-    message.channel.id === process.env["bot-channel"]
-  ) {
-    await burgerLbMsg(message);
-  } else if (message.content.toLowerCase() === "s!checkrecords") {
-    doRecordCheckManual();
+  try {
+    if (message.author.bot) return;
+    if (
+      message.content.toLowerCase() === "s!burger" &&
+      message.channel.id === process.env["bot-channel"]
+    ) {
+      await burgerMsg(message);
+    } else if (
+      message.content.toLowerCase() === "s!burgertop" &&
+      message.channel.id === process.env["bot-channel"]
+    ) {
+      await burgerLbMsg(message);
+    } else if (message.content.toLowerCase() === "s!checkrecords") {
+      doRecordCheckManual();
+    }
+  } catch (error) {
+    console.error(error);
   }
 });
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
+  try {
+    if (!interaction.isCommand()) return;
 
-  const commandName = interaction.commandName;
-  if (commandName === "submit") {
-    handleResult(interaction);
-  } else if (commandName === "unsubmit") {
-    const user = interaction.options.getUser("user");
-    adminDeleteResult(user.id);
-    interaction.reply({
-      content: `Removed results for ${user.displayName}`,
-      ephemeral: true,
-    });
-  } else if (commandName === "burger") {
-    burger(interaction, true);
-  } else if (commandName === "burgertop") {
-    burgerLb(interaction);
-  } else if (commandName === "cr") {
-    currentRankings(interaction);
+    const commandName = interaction.commandName;
+    if (commandName === "submit") {
+      handleResult(interaction);
+    } else if (commandName === "unsubmit") {
+      const user = interaction.options.getUser("user");
+      adminDeleteResult(user.id);
+      interaction.reply({
+        content: `Removed results for ${user.displayName}`,
+        ephemeral: true,
+      });
+    } else if (commandName === "burger") {
+      burger(interaction, true);
+    } else if (commandName === "burgertop") {
+      burgerLb(interaction);
+    } else if (commandName === "cr") {
+      currentRankings(interaction);
+    }
+  } catch (error) {
+    console.error(error);
   }
 });
 
 // “At 22:00 on Tuesday.”
 cron.schedule("0 22 * * 1", () => {
-  manageComp();
+  try {
+    manageComp();
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // every 12 hours get all top player results
@@ -94,18 +106,20 @@ cron.schedule("0 */12 * * *", () => {
   const recordsChannel = client.channels.cache.get(
     process.env.megaRecordsChannelId
   );
-  checkRankings(recordsChannel);
+  try {
+    checkRankings(recordsChannel);
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 // Every 15 minutes check for records
 cron.schedule("*/15 * * * *", () => {
-  console.log("Checking for records...");
-  const currentTime = new Date();
-  console.log(currentTime);
-  const recordsChannel = client.channels.cache.get(
-    process.env.megaRecordsChannelId
-  );
-  getFilteredRecords(recordsChannel);
+  try {
+    doRecordCheckManual();
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 async function doRecordCheckManual() {
