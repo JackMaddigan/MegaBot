@@ -101,13 +101,13 @@ async function getFilteredRecords(recordsChannel) {
 async function createAndSendEmbed(record, recordsChannel) {
   const roleToPing = getRoleToPing[record.tag];
   console.log(record.result.attempts);
-  const timeList = `*(${centiToTime(
-    record.result.attempts[0].result
-  )}, ${centiToTime(record.result.attempts[1].result)}, ${centiToTime(
-    record.result.attempts[2].result
-  )}, ${centiToTime(record.result.attempts[3].result)}, ${centiToTime(
-    record.result.attempts[4].result
-  )})*`;
+  const timeList = `*(${
+    centiToTime(record.result.attempts[0].result) || "DNS"
+  }, ${centiToTime(record.result.attempts[1].result) || "DNS"}, ${
+    centiToTime(record.result.attempts[2].result) || "DNS"
+  }, ${centiToTime(record.result.attempts[3].result) || "DNS"}, ${
+    centiToTime(record.result.attempts[4].result) || "DNS"
+  })*`;
 
   const recordEmbed = new EmbedBuilder()
     .setColor(getColorOfTag[record.tag])
