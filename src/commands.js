@@ -1,87 +1,68 @@
-require("dotenv").config();
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v9");
-const rest = new REST({ version: "10" }).setToken(process.env.botToken);
+const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
 
-const commands = [
-  // {
-  //   name: "burger",
-  //   description: "burger",
-  // },
-  {
-    name: "cr",
-    description: "Current rankings for the weekly comp",
-  },
-  // {
-  //   name: "burgertop",
-  //   description: "burger leaderboard",
-  // },
-  {
-    name: "unsubmit",
-    description: "Admin unsubmit results",
-    options: [
-      {
-        name: "user",
-        description: "User to unsubmit results for",
-        type: 6, // Type 6 is a user
-        required: true,
-      },
-    ],
-  },
-  {
-    name: "submit",
-    description: "Submit Megaminx results for the weekly comp!",
-    options: [
-      {
-        name: "solve-1",
-        description: "solve 1",
-        type: 3, // 3 represents a string type
-        required: true,
-      },
-      {
-        name: "solve-2",
-        description: "solve 2",
-        type: 3, // 3 represents a string type
-        required: true,
-      },
-      {
-        name: "solve-3",
-        description: "solve 3",
-        type: 3, // 3 represents a string type
-        required: true,
-      },
-      {
-        name: "solve-4",
-        description: "solve 4",
-        type: 3, // 3 represents a string type
-        required: true,
-      },
-      {
-        name: "solve-5",
-        description: "solve 5",
-        type: 3, // 3 represents a string type
-        required: true,
-      },
-      {
-        name: "admin",
-        description: "submit for",
-        type: 6, // 3 represents a string type
-        required: false,
-      },
-    ],
-  },
-];
-
-(async () => {
+async function registerCommands(client) {
   try {
-    console.log("Started registering application (/) commands.");
+    // Define your slash commands
+    const submitCommand = new SlashCommandBuilder()
+      .setName("submit")
+      .setDescription("Submit results for the weekly comp")
+      // .addStringOption((option) =>
+      //   option
+      //     .setName("event")
+      //     .setDescription("The event to submit results for")
+      //     .setRequired(true)
+      //     .addChoices(submitDropdownOptions)
+      // )
+      .addStringOption((option) =>
+        option
+          .setName("results")
+          .setDescription("Results separated by a space")
+          .setRequired(true)
+      )
+      .addUserOption((option) =>
+        option
+          .setName("submit-for")
+          .setDescription("[Admin only] Submit for someone else")
+          .setRequired(false)
+      );
 
-    await rest.put(Routes.applicationCommands(process.env.clientId), {
-      body: commands,
-    });
+    const unsubmitCommand = new SlashCommandBuilder()
+      .setName("unsubmit")
+      .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
+      .setDescription("Unsubmit results")
+      .addUserOption((option) =>
+        option.setName("user").setRequired(true).setDescription("The user")
+      );
+    // .addStringOption((option) =>
+    //   option
+    //     .setName("event")
+    //     .setRequired(true)
+    //     .setDescription("Event to unsubmit")
+    //     .setChoices(submitDropdownOptions)
+    // );
 
-    console.log("Successfully registered application (/) commands.");
+    const currentRankingsCommand = new SlashCommandBuilder()
+      .setName("cr")
+      .setDescription("See the current competition rankings")
+      .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers);
+
+    const viewCommand = new SlashCommandBuilder()
+      .setName("view")
+      .setDescription("See your results for the weekly comp");
+
+    // Register the slash commands
+    await client.application.commands.set([
+      submitCommand,
+      unsubmitCommand,
+      currentRankingsCommand,
+      viewCommand,
+    ]);
+    console.log("Slash commands registered successfully.");
   } catch (error) {
-    console.error(error);
+    console.error("Failed to register slash commands:", error);
   }
-})();
+}
+
+module.exports = {
+  registerCommands,
+};

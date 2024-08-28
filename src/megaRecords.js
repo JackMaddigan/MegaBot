@@ -1,146 +1,8 @@
-// Import the GraphQLClient class from graphql-request
-const { GraphQLClient } = require("graphql-request");
-const { getData, saveData } = require("./db");
 const { EmbedBuilder } = require("discord.js");
-// Define your GraphQL endpoint
-const endpoint = "https://live.worldcubeassociation.org/api/graphql"; // Replace with your actual GraphQL endpoint
+const { toDisp } = require("./compHelpers");
+const { recentRecordsQuery } = require("./queries");
 const missingAvatar =
   "https://www.worldcubeassociation.org/assets/missing_avatar_thumb-d77f478a307a91a9d4a083ad197012a391d5410f6dd26cb0b0e3118a5de71438.png";
-// Define your GraphQL query
-const query = `
-  {
-    recentRecords{
-      type
-      tag
-      id
-      attemptResult
-      result {
-        attempts{
-          result
-        }
-        person {
-          name
-          wcaId
-          avatar{
-            thumbUrl
-          }
-          country {
-            iso2
-            name
-          }
-        }
-        round {
-          id
-          competitionEvent{
-            event {
-              id
-              name
-            }
-            competition {
-              id
-              name
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-async function fetchRecords() {
-  try {
-    // Create a new GraphQLClient instance with your endpoint
-    const client = new GraphQLClient(endpoint);
-    // Execute the GraphQL query
-    const data = await client
-      .request(query)
-      .catch((error) => console.error("Error:", error));
-    return data.recentRecords;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-async function getFilteredRecords(recordsChannel) {
-  const oldRecordsPath = "/oldRecords/";
-  // get data from wca live
-  const data = await fetchRecords();
-  // get old records from db
-  var oldRecords = (await getData(oldRecordsPath)) || {};
-
-  //   add all old records ids to an array
-  var oldRecordIds = [];
-  if (Object.keys(oldRecords).length > 0) {
-    for (const key in oldRecords) {
-      oldRecordIds.push(key);
-    }
-  }
-
-  //   Save all records that are megaminx and not an old record to filteredRecords
-  const filteredRecords = data.filter((record) => {
-    return (
-      record.result.round.competitionEvent.event.id === "minx" &&
-      !oldRecordIds.includes(record.id)
-    );
-  });
-  //   records are all new and need to be sent
-  console.log(JSON.stringify(filteredRecords, null, 2));
-
-  const timestamp = Date.now();
-
-  //    Add all the new records to the old records and save to db and send embed
-  for (let i = 0; i < filteredRecords.length; i++) {
-    oldRecords[filteredRecords[i].id] = timestamp;
-    createAndSendEmbed(filteredRecords[i], recordsChannel);
-  }
-  saveData(oldRecordsPath, oldRecords);
-
-  //    Loop through records and create embed and send
-}
-
-async function createAndSendEmbed(record, recordsChannel) {
-  const roleToPing = getRoleToPing[record.tag];
-  console.log(record.result.attempts);
-  var timeListArray = [];
-  for (let i = 0; i < record.result.attempts.length; i++) {
-    timeListArray.push(centiToTime(record.result.attempts[i].result));
-  }
-  for (let j = 0; j > 5 - timeListArray.length; j++) {
-    timeListArray.push("DNS");
-  }
-  const timeList = "*(" + timeListArray.join(", ") + ")*";
-  // const timeList = `*(${centiToTime(
-  //   record.result.attempts[0].result
-  // )}, ${centiToTime(record.result.attempts[1].result)}, ${centiToTime(
-  //   record.result.attempts[2].result
-  // )}, ${centiToTime(record.result.attempts[3].result)}, ${centiToTime(
-  //   record.result.attempts[4].result
-  // )})*`;
-
-  const recordEmbed = new EmbedBuilder()
-    .setColor(getColorOfTag[record.tag])
-    .setTitle(`Megaminx ${record.type} of ${centiToTime(record.attemptResult)}`)
-    .setURL(
-      `https://live.worldcubeassociation.org/competitions/${record.result.round.competitionEvent.competition.id}/rounds/${record.result.round.id}`
-    )
-    .setAuthor({
-      name: record.result.person.name,
-      iconURL: record.result.person.avatar.thumbUrl || missingAvatar,
-      url: `https://www.worldcubeassociation.org/persons/${record.result.person.wcaId}`,
-    })
-    .setDescription(
-      `${
-        record.result.person.country.name
-      } :flag_${record.result.person.country.iso2.toLowerCase()}:\n${timeList}`
-    )
-    .setThumbnail(getPicPath[record.tag])
-    .setTimestamp();
-
-  recordsChannel.send({
-    embeds: [recordEmbed],
-    content: `<@&${getRoleToPing[record.tag]}>`,
-  });
-}
 
 const getColorOfTag = {
   WR: "#f44336",
@@ -148,35 +10,84 @@ const getColorOfTag = {
   NR: "#00e676",
 };
 
+const eventIds = new Set(["minx"]);
+
 const getPicPath = {
   WR: "https://raw.githubusercontent.com/JackMaddigan/images/main/wr.png",
   CR: "https://raw.githubusercontent.com/JackMaddigan/images/main/cr.png",
   NR: "https://raw.githubusercontent.com/JackMaddigan/images/main/nr.png",
 };
+const interval = 900000; // One hour in milliseconds is 3600000, 1 day is 8.64e+7, 1 week is 6.048e+8, 15 min 900000
 
-const getRoleToPing = {
-  WR: process.env.wrPing,
-  CR: process.env.crPing,
-  NR: process.env.nrPing,
-};
+async function fetchRecentRecords(client, date) {
+  try {
+    // Run recent records query to get the record data from WCA Live API
+    const data = await fetchWCALiveQuery(recentRecordsQuery);
 
-// console.log(centiToTime(6303));
+    // Sort data to include only events in the eventIds set and that are entered in the past interval amount of time
+    const recentRecords = data.data.recentRecords.filter((recentRecord) => {
+      return (
+        date - new Date(recentRecord.result.enteredAt) < interval &&
+        eventIds.has(recentRecord.result.round.competitionEvent.event.id)
+      );
+    });
 
-function centiToTime(centi) {
-  if (centi === 0 || centi === -2) {
-    return "DNS";
-  } else if (centi === -1) {
-    return "DNF";
-  } else {
-    const seconds = ((centi % 6000) / 100).toFixed(2);
-    const minutes = Math.floor(centi / 6000);
-    const display =
-      minutes === 0 ? seconds : minutes + ":" + seconds.padStart(5, 0);
-    return display;
+    for (const recentRecord of recentRecords) {
+      console.log(recentRecord.result.enteredAt);
+      // const eventId = recentRecord.result.round.competitionEvent.event.id;
+      const result = toDisp(recentRecord.attemptResult);
+      const embed = new EmbedBuilder()
+        .setAuthor({
+          name: recentRecord.result.person.name,
+          iconURL: recentRecord.result.person.avatar.thumbUrl || missingAvatar,
+          url: `https://www.worldcubeassociation.org/persons/${recentRecord.result.person.wcaId}`,
+        })
+        .setColor(getColorOfTag[recentRecord.tag])
+        .setTitle(`Megaminx ${recentRecord.type} of ${result}`)
+        .setURL(
+          `https://live.worldcubeassociation.org/competitions/${recentRecord.result.person.competition.id}/rounds/${recentRecord.result.round.id}`
+        )
+        .setDescription(
+          `${
+            recentRecord.result.person.country.name
+          } :flag_${recentRecord.result.person.country.iso2.toLowerCase()}:\n${
+            "(" +
+            recentRecord.result.attempts
+              .map((attempt) => toDisp(attempt.result, 1))
+              .join(", ") +
+            ")"
+          }`
+        )
+        .setThumbnail(getPicPath[recentRecord.tag])
+        .setTimestamp();
+      await client.channels.cache
+        .get(process.env.recordsChannelId)
+        .send({ embeds: [embed] })
+        .catch((error) => console.error(error));
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
-module.exports = {
-  getFilteredRecords,
-  centiToTime,
-};
+async function fetchWCALiveQuery(query) {
+  try {
+    const url = "https://live.worldcubeassociation.org/api";
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    const response = await fetch(url, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({
+        query: query,
+      }),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+module.exports = { fetchRecentRecords };

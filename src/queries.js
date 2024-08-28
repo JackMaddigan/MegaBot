@@ -1,0 +1,40 @@
+const recentRecordsQuery = `{
+  recentRecords{
+    result{
+     attempts{
+        result
+      }
+      enteredAt
+      person{
+        avatar{
+					thumbUrl
+      	}
+        name
+        competition{
+          id
+        }
+        wcaId
+        country{
+          iso2
+          name
+        }
+      }
+      round{
+        id
+        competitionEvent{
+          event{
+            id
+          }
+        }
+      }
+    }
+    attemptResult
+    type
+    tag
+    id
+  }
+}`;
+
+module.exports = {
+  recentRecordsQuery,
+};

@@ -7,7 +7,13 @@ const {
   Partials,
   PermissionsBitField,
 } = require("discord.js");
-const { handleResult } = require("./submit");
+const {
+  handleSubmit,
+  unsubmit,
+  viewMyResults,
+  handleCurrentRankingsCommand,
+  handleComp,
+} = require("./comp");
 const {
   adminDeleteResult,
   getRankedResults,
@@ -15,6 +21,7 @@ const {
   saveWeek,
   getBurgerInfo,
 } = require("./db");
+const { registerCommands } = require("./commands");
 const {
   burger,
   burgerLb,
@@ -22,7 +29,7 @@ const {
   burgerLbMsg,
   updateBurgerRoles,
 } = require("./burger");
-const { getFilteredRecords } = require("./megaRecords");
+const { getFilteredRecords, fetchRecentRecords } = require("./megaRecords");
 const { checkRankings } = require("./megaTopResults");
 
 const { sendPodium, scrambles, currentRankings } = require("./comp");
@@ -40,8 +47,10 @@ client.login(process.env.botToken).then(() => {
   console.log("MegaBot is online!");
 });
 
-client.on("ready", () => {
+client.on("ready", async () => {
   const burgerEmoji = "🍔";
+  await handleComp(client); // await registerCommands(client);
+  // await fetchRecentRecords(client);
   client.user.setPresence({
     activities: [{ name: burgerEmoji }],
     // status: "idle",
@@ -61,11 +70,6 @@ client.on("messageCreate", async (message) => {
       message.channel.id === process.env["bot-channel"]
     ) {
       await burgerLbMsg(message);
-    } else if (
-      message.content.toLowerCase() === "s!checkrecords" &&
-      message.member.permissions.has(PermissionsBitField.Flags.BanMembers)
-    ) {
-      doRecordCheckManual();
     }
   } catch (error) {
     console.error(error);
@@ -77,21 +81,21 @@ client.on("interactionCreate", async (interaction) => {
     if (!interaction.isCommand()) return;
 
     const commandName = interaction.commandName;
-    if (commandName === "submit") {
-      handleResult(interaction);
-    } else if (commandName === "unsubmit") {
-      const user = interaction.options.getUser("user");
-      adminDeleteResult(user.id);
-      interaction.reply({
-        content: `Removed results for ${user.displayName}`,
-        ephemeral: true,
-      });
-    } else if (commandName === "burger") {
-      burger(interaction, true);
-    } else if (commandName === "burgertop") {
-      burgerLb(interaction);
-    } else if (commandName === "cr") {
-      currentRankings(interaction);
+    switch (commandName) {
+      case "submit":
+        await handleSubmit(interaction);
+        break;
+      case "unsubmit":
+        await unsubmit(interaction);
+        break;
+      case "cr":
+        await handleCurrentRankingsCommand(interaction);
+        break;
+      case "view":
+        await viewMyResults(interaction);
+        break;
+      default:
+        break;
     }
   } catch (error) {
     console.error(error);
@@ -122,23 +126,14 @@ cron.schedule("0 */12 * * *", () => {
 });
 
 // Every 15 minutes check for records
-cron.schedule("*/15 * * * *", () => {
+cron.schedule("*/15 * * * *", async () => {
   try {
-    doRecordCheckManual();
+    const date = new Date().setSeconds(0, 0);
+    await fetchRecentRecords(client, date);
   } catch (error) {
     console.error(error);
   }
 });
-
-async function doRecordCheckManual() {
-  console.log("Checking for records...");
-  const currentTime = new Date();
-  console.log(currentTime);
-  const recordsChannel = client.channels.cache.get(
-    process.env.megaRecordsChannelId
-  );
-  getFilteredRecords(recordsChannel);
-}
 
 async function manageComp() {
   // var guild = client.guilds.cache.get(process.env.guildId);
@@ -159,13 +154,3 @@ async function manageComp() {
     sendPodium(results, resultsChannel, scramblesChannel, adminChannel);
   }
 }
-
-// async function initialRoles() {
-//   const burgerInfo = await getBurgerInfo();
-//   const guild = client.guilds.cache.get(process.env.guildId);
-//   try {
-//     updateBurgerRoles(burgerInfo, guild);
-//   } catch (error) {
-//     console.log(error);
-//   }
-// }
