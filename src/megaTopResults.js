@@ -1,6 +1,6 @@
 const { getData, saveData } = require("./db");
 const { EmbedBuilder } = require("discord.js");
-const { centiToTime } = require("./megaRecords");
+const { toDisp } = require("./compHelpers");
 
 async function fetchNewRankings(type) {
   try {
@@ -110,7 +110,7 @@ async function sendTopResultEmbeds(results, channel) {
       const resultEmbed = new EmbedBuilder()
         .setColor("#1976d2")
         .setTitle(
-          `Megaminx ${results[i].rankType} of ${centiToTime(results[i].best)}`
+          `Megaminx ${results[i].rankType} of ${toDisp(results[i].best)}`
         )
         .setAuthor({
           name: `${userData.name}`,

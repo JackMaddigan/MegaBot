@@ -136,7 +136,6 @@ async function postScrambles(scrambleChannel) {
         linesArray[j] = "\t" + linesArray[j];
       }
       scramble = linesArray.join("\n\u200B");
-      console.log(scramble);
       scrambleText += `${i + 1}.  ${scramble}\n`;
     }
     scrambleText +=
@@ -184,7 +183,6 @@ async function getRankedResults() {
   try {
     const eventArrays = {};
     for (const eventId in eventIdToName) {
-      console.log(eventId);
       const eventResults = await readData(
         `SELECT * FROM results WHERE eventId=?`,
         [eventId]
@@ -194,7 +192,6 @@ async function getRankedResults() {
       if (rankedResultsArray.length > 0)
         eventArrays[eventId] = rankedResultsArray;
     }
-    console.log(eventArrays);
     return eventArrays;
   } catch (error) {
     console.error(error);
@@ -222,7 +219,13 @@ function rankEventArray(eventResults, ei) {
       if (result.average < 0) dnfAverages.push(eventResults.splice(i, 1));
     }
     dnfAverages = dnfAverages.sort((a, b) => a.best - b.best);
-    eventResults = eventResults.sort((a, b) => a.average - b.average);
+    eventResults = eventResults.sort((a, b) => {
+      if (a.average === b.average) {
+        return a.best - b.best;
+      } else {
+        return a.average - b.average;
+      }
+    });
     eventResults = eventResults.concat(...dnfAverages);
     addPlacingsToAvgEventResults(eventResults);
     // addPlacingsToBestEventResults(dnfAverages);
@@ -235,17 +238,26 @@ function rankEventArray(eventResults, ei) {
 
 function addPlacingsToAvgEventResults(eventResults) {
   for (let i = 0; i < eventResults.length; i++) {
-    if (i === 0) eventResults[i].placing = 1;
-    else if (eventResults[i].best < 0)
+    if (i === 0) {
+      eventResults[i].placing = 1;
+    }
+    // if first in sorted list then give rank 1 regardless
+    else if (eventResults[i].best < 0) {
+      // dnf single and average, give last place possible
       eventResults[i].placing = eventResults.length + 1;
-    else if (
+    } else if (
       eventResults[i].average > eventResults[i - 1].average ||
       eventResults[i].average < 0
-    )
+    ) {
       eventResults[i].placing = i + 1;
-    else if (eventResults[i].best > eventResults[i - 1].best)
+
+      // if avg slower than previous rank or avg is dnf, give next rank
+    } else if (eventResults[i].best > eventResults[i - 1].best) {
+      // if single greater than other single then give next rank since averages must be the same
       eventResults[i].placing = i + 1;
-    else eventResults[i].placing = eventResults[i - 1].placing;
+    } else {
+      eventResults[i].placing = eventResults[i - 1].placing; // else give same placing
+    }
   }
 }
 
@@ -304,7 +316,6 @@ function placingToMedal(placing) {
 
 async function sendResults(client, eventArrays, week) {
   try {
-    console.log(eventArrays);
     const eventId = "minx";
     const resultsChannel = client.channels.cache.get(
       process.env.resultsChannelId
@@ -339,35 +350,25 @@ async function sendResults(client, eventArrays, week) {
     // }
 
     // Text file
-    let textFileText = "";
+    let textFileText = "Placing,Name,Average,Best,Solves";
     // text += eventIdToName[eventId];
     for (const result of eventArray) {
-      const resultText =
-        result.eventFormat === "bo3"
-          ? `${toDisp(result.best)} single`
-          : `${toDisp(result.average)} average`;
-      textFileText += `\n#${result.placing} ${result.userName} ${resultText} (${result.list})`;
+      textFileText += `\n#${result.placing},${result.userName},${toDisp(
+        result.average
+      )},${toDisp(result.best)},${result.list}`;
     }
     // }
     fs.writeFileSync("./results.txt", textFileText);
-    await resultsChannel
-      .send({ files: ["./results.txt"] })
+    const adminChannel = await client.channels.cache.get(
+      process.env.adminChannelId
+    );
+    await adminChannel
+      .send({ files: ["./results.csv"] })
       .catch((error) => console.error(error));
   } catch (error) {
     console.error(error);
   }
 }
-
-// async function deleteLast50Messages(channel) {
-//   try {
-//     // Fetch the last 50 messages from the channel
-//     const fetchedMessages = await channel.messages.fetch({ limit: 50 });
-//     // Bulk delete the messages
-//     await channel.bulkDelete(fetchedMessages, true);
-//   } catch (error) {
-//     console.error("Failed to delete messages:", error);
-//   }
-// }
 
 module.exports = {
   handleSubmit,

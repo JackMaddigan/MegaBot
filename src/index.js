@@ -42,6 +42,7 @@ const client = new Client({
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
+const botChannelId = process.env.botChannelId;
 
 client.login(process.env.botToken).then(() => {
   console.log("MegaBot is online!");
@@ -49,7 +50,7 @@ client.login(process.env.botToken).then(() => {
 
 client.on("ready", async () => {
   const burgerEmoji = "🍔";
-  await handleComp(client); // await registerCommands(client);
+  // await handleComp(client); // await registerCommands(client);
   // await fetchRecentRecords(client);
   client.user.setPresence({
     activities: [{ name: burgerEmoji }],
@@ -62,12 +63,12 @@ client.on("messageCreate", async (message) => {
     if (message.author.bot) return;
     if (
       message.content.toLowerCase() === "s!burger" &&
-      message.channel.id === process.env["bot-channel"]
+      message.channel.id === botChannelId
     ) {
       await burgerMsg(message);
     } else if (
-      message.content.toLowerCase() === "s!burgertop" &&
-      message.channel.id === process.env["bot-channel"]
+      message.content.toLowerCase().startsWith("s!burgertop") &&
+      message.channel.id === botChannelId
     ) {
       await burgerLbMsg(message);
     }

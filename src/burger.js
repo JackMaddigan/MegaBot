@@ -1,229 +1,230 @@
-// const {
-//   getBurgerInfo,
-//   saveBurgerInfo,
-//   getBurgerLbInfo,
-//   getTimeSinceThisUserBurger,
-//   saveUserBurgerTime,
-//   saveUsersRoles,
-// } = require("./db");
-// const burgerWaitDuration = 21600000;
+const { EmbedBuilder } = require("@discordjs/builders");
+const { readData, saveData, deleteData } = require("./db");
+const burgerWaitDuration = 21600000; // 21600000
 
-// const roles = [
-//   process.env["burger-leader"],
-//   process.env["burger-second"],
-//   process.env["burger-third"],
-// ];
+const lastBurgerTimes = {};
+let lastBurger = null;
+let lastBurgerUser = null;
 
-// async function burgerMsg(msg) {
-//   const timeNow = Date.now();
-//   var coolDownTime = await getTimeSinceThisUserBurger(msg.author.id);
-//   if (coolDownTime < 15000) {
-//     try {
-//       const sentMessage = await msg.reply(
-//         `Please wait ${
-//           Math.round((15000 - coolDownTime) / 100) / 10
-//         } more seconds before you try to call burger again.`
-//       );
-//       await delay(3000);
-//       sentMessage.delete();
-//       msg.delete();
+const roles = [
+  process.env["burger-leader"],
+  process.env["burger-second"],
+  process.env["burger-third"],
+];
 
-//       // Perform deletions concurrently
-//       // await Promise.all([sentMessage.delete(), msg.delete()]);
+async function burgerMsg(msg) {
+  try {
+    const timeNow = Date.now();
+    const userLastBurgerTime = lastBurgerTimes[msg.authorId];
+    var coolDownTime = userLastBurgerTime
+      ? timeNow - userLastBurgerTime
+      : timeNow;
+    if (coolDownTime < 15000) {
+      try {
+        const sentMessage = await msg.reply(
+          `Please wait ${
+            Math.round((15000 - coolDownTime) / 100) / 10
+          } more seconds before you try to call burger again.`
+        );
+        await delay(3000);
+        await Promise.all([sentMessage.delete(), msg.delete()]);
+      } catch (error) {
+        console.error(error);
+      }
+    } else {
+      if (lastBurger == null) {
+        // bot must have started up and lost the variable values
+        let lastBurgerInfo = (
+          await readData(`SELECT * FROM burger LIMIT 1`)
+        )[0];
+        if (!lastBurgerInfo) {
+          // nothing in db so first ever burger
+          lastBurger = 0;
+        } else {
+          // update variables to what the database had
+          lastBurger = lastBurgerInfo.time;
+          lastBurgerUser = lastBurgerInfo.lastCalledUser;
+        }
+      }
+      var difference = timeNow - lastBurger;
+      // set last burger time for the user for the cooldown
+      lastBurgerTimes[msg.author.id] = timeNow;
+      if (difference >= burgerWaitDuration) {
+        // it has been 6 hours
+        const uid = msg.author.id;
+        const userName = msg.author.globalName;
+        lastBurger = timeNow;
+        lastBurgerUser = userName;
+        await msg.reply(":hamburger:");
+        // update last burger info in db
+        await saveData(
+          `INSERT INTO burger (id, time, lastCalledUser)
+VALUES (?, ?, ?)
+ON CONFLICT(id) 
+DO UPDATE SET time = excluded.time, lastCalledUser = excluded.lastCalledUser`,
+          [1, timeNow, userName]
+        );
+        // add to leaderboard
+        await saveData(
+          `INSERT INTO burgerLeaderboard (id, score, userName)
+VALUES (?, ?, ?)
+ON CONFLICT(id) 
+DO UPDATE SET score = score + excluded.score, userName = excluded.userName`,
+          [uid, 1, userName]
+        );
 
-//       // await delay(3000);
+        await updateBurgerRoles(msg.guild);
+      } else {
+        var timeTillBurger = Math.round(
+          (burgerWaitDuration - difference) / 1000
+        );
+        await msg.reply(
+          `Burger was already called by **${lastBurgerUser}**, and can be called again in ${
+            Math.round((timeTillBurger / 3600) * 100) / 100
+          } hours.`
+        );
+      }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-//       // // Delete messages after the delay
-//       // await sentMessage.delete();
-//       // await msg.delete();
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   } else {
-//     saveUserBurgerTime(msg.author.id, timeNow);
+async function burgerLbMsg(msg) {
+  const size = 10;
+  let lbDataArray = await orderBurgerRankings();
+  let parts = msg.content.split(" ");
+  let startRank = 1;
+  if (parts.length > 1)
+    if (!isNaN(parts[1])) startRank = Math.abs(Number(parts[1]));
+  if (startRank > lbDataArray.length) startRank = 1;
+  const ranksToShow = [];
+  for (
+    let i = Math.max(startRank - 1, 0);
+    i < Math.min(startRank + size - 1, lbDataArray.length);
+    i++
+  )
+    ranksToShow.push(lbDataArray[i]);
 
-//     var burgerInfo = await getBurgerInfo();
-//     var difference;
-//     if (burgerInfo === null) {
-//       difference = burgerWaitDuration;
-//     } else {
-//       difference = timeNow - burgerInfo.lastTime;
-//     }
-//     if (difference >= burgerWaitDuration) {
-//       // yes
-//       const uid = msg.author.id;
-//       const username = msg.author.globalName;
-//       msg.reply(":hamburger:");
-//       // add to leaderboard
-//       var userScore = { score: 0, username: username };
-//       if (burgerInfo === null) {
-//         // start of burger and nothing in db
-//         burgerInfo = { leaderboard: {} };
-//       } else {
-//         if (burgerInfo.leaderboard[`${uid}`] !== undefined) {
-//           if (burgerInfo.leaderboard[`${uid}`].score !== null) {
-//             // if the user has an existing score then save that to userScore.score
-//             userScore.score = burgerInfo.leaderboard[`${uid}`].score;
-//           }
-//         } else {
-//           burgerInfo.leaderboard[`${uid}`] = {};
-//         }
-//       }
-//       userScore.score++;
-//       // add or subtract random time
-//       // let randomTime = Math.floor(Math.random() * 20001) - 10000;
-//       burgerInfo.lastTime = timeNow; // + randomTime;
-//       burgerInfo.lastUsername = username;
-//       burgerInfo.leaderboard[`${uid}`] = userScore;
-//       saveBurgerInfo(burgerInfo);
-//       try {
-//         updateBurgerRoles(burgerInfo, msg.guild);
-//       } catch (error) {
-//         console.log(error);
-//       }
-//     } else {
-//       var timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
-//       // no
-//       msg.reply(
-//         `Burger was already called by **${
-//           burgerInfo.lastUsername
-//         }**, and can be called again in ${
-//           Math.round((timeTillBurger / 3600) * 100) / 100
-//         } hours.`
-//       );
-//     }
-//   }
-// }
+  let text = "";
+  for (const item of ranksToShow) {
+    text += `#${item.placing}. ${item.userName} **${item.score}**\n`;
+  }
+  await msg.reply({
+    embeds: [
+      new EmbedBuilder()
+        .setColor(0x00ff00)
+        .setTitle(":hamburger: Burger Leaderboard :hamburger:")
+        .setDescription(text || " ")
+        .setFooter({
+          text: `${startRank}-${Math.min(
+            startRank + size - 1,
+            lbDataArray.length
+          )} of ${lbDataArray.length}`,
+        }),
+    ],
+  });
+}
 
-// async function burgerLbMsg(msg) {
-//   const lbDataArray = await orderBurgerRankings();
-//   var text = "";
+async function orderBurgerRankings() {
+  try {
+    const data = await readData(
+      `SELECT * FROM burgerLeaderboard ORDER BY score DESC`,
+      []
+    );
+    let lastScore = -1;
+    for (let i = 0; i < data.length; i++) {
+      let entry = data[i];
+      if (lastScore === entry.score) {
+        entry.placing = data[i - 1].placing;
+      } else {
+        entry.placing = i + 1;
+      }
+      lastScore = entry.score;
+    }
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-//   for (let i = 0; i < lbDataArray.length; i++) {
-//     text += `#${lbDataArray[i].placing}. ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;
-//   }
-//   msg.reply({
-//     embeds: [
-//       {
-//         color: 0x00ff00, // Hex color code
-//         title: ":hamburger: Burger Leaderboard :hamburger:",
-//         description: text,
-//       },
-//     ],
-//   });
-// }
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-// async function orderBurgerRankings() {
-//   const rawLbData = await getBurgerLbInfo();
-//   var lbDataArray = [];
-//   for (const key in rawLbData) {
-//     rawLbData[key].uid = key;
-//     lbDataArray.push(rawLbData[key]);
-//   }
-//   lbDataArray.sort((a, b) => {
-//     return b.score - a.score;
-//   });
-//   // now sorted, add placing index
-//   var lastScore = -1;
-//   for (let i = 0; i < lbDataArray.length; i++) {
-//     if (lastScore === lbDataArray[i].score) {
-//       lbDataArray[i].placing = lbDataArray[i - 1].placing;
-//     } else {
-//       lbDataArray[i].placing = i + 1;
-//     }
-//     lastScore = lbDataArray[i].score;
-//   }
-//   return lbDataArray;
-// }
+async function updateBurgerRoles(guild) {
+  try {
+    const oldRoleHavers = await readData(
+      `SELECT * FROM burgerLastRoleHavers`,
+      []
+    );
+    const burgerRankings = await orderBurgerRankings();
+    const toRemove = []; // {uid: text, roleId: text}
+    const toAdd = []; // {uid: text, roleId: text}
+    let podium = burgerRankings.filter((item) => item.placing === 1);
+    podium.forEach((item) => {
+      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
+    });
+    let secondPlaces = burgerRankings.filter((item) => item.placing === 2);
+    secondPlaces.forEach((item) => {
+      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
+    });
+    let thirdPlaces = burgerRankings.filter((item) => item.placing === 3);
+    thirdPlaces.forEach((item) => {
+      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
+    });
+    if (podium.length < 3) podium = podium.concat(secondPlaces);
+    if (podium.length < 3) podium = podium.concat(thirdPlaces);
+    // podium contains all it needs and roleId contains necessary role
+    // need to decide toAdd and toRemove
+    for (const item of podium) {
+      const uid = item.id;
+      const user = await guild.members.fetch(uid);
+      const hasRole = user.roles.cache.has(roles[item.placing - 1]);
+      if (!hasRole) toAdd.push(item);
+    }
+    for (const item of oldRoleHavers) {
+      // {id: text, roleId: text}
+      // check to see if item is in podium with correct role
+      // if so dont remove, else remove
+      let remove = true;
+      for (const podiumItem of podium) {
+        if (podiumItem.id === item.id && podiumItem.roleId === item.roleId) {
+          remove = false; // they are in the podium with the same role, so it does not need to be removed (also wont be included in toAdd as it checks if they have it already before adding)
+        }
+      }
 
-// function delay(ms) {
-//   return new Promise((resolve) => setTimeout(resolve, ms));
-// }
+      if (remove) {
+        // Fetch the role object
+        const role = guild.roles.cache.get(item.roleId);
+        if (!role) throw new Error("Role not found");
+        await user.roles.remove(role);
+        console.info(`Removed ${role.name} from ${user.username}`);
+        await deleteData(`DELETE * FROM burgerLastRoleHavers WHERE id=?`, [
+          item.id,
+        ]);
+      }
+    }
 
-// async function updateBurgerRoles(burgerInfo, guild) {
-//   const oldRoleHavers = burgerInfo.lastRoleHavers;
-//   if (oldRoleHavers !== undefined) {
-//     // remove old roles
+    for (const item of toAdd) {
+      // add role
+      const member = await guild.members.fetch(item.id);
+      const role = guild.roles.cache.get(item.roleId);
+      if (!role) throw new Error("Role not found");
+      // Add the role to the member
+      await member.roles.add(role);
+      console.info(`Added role ${role.name} to user ${member.user.tag}`);
+      await saveData(
+        `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
+        [item.id, item.roleId]
+      );
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-//     for (const uid in oldRoleHavers) {
-//       await removeRolesFromUser(guild, uid);
-//     }
-//   }
-//   // now give the roles to the new top ones
-
-//   const burgerRankings = await orderBurgerRankings();
-//   var placingsArray = [[], [], []];
-//   for (let i = 0; i < burgerRankings.length; i++) {
-//     if (burgerRankings[i].placing === 1) {
-//       placingsArray[0].push(burgerRankings[i].uid);
-//     } else if (burgerRankings[i].placing === 2) {
-//       placingsArray[1].push(burgerRankings[i].uid);
-//     } else if (burgerRankings[i].placing === 3) {
-//       placingsArray[2].push(burgerRankings[i].uid);
-//     }
-//   }
-//   // placingsArray contains 3 arrays, each with all the uids of that placing
-//   // now get the right amount of podium people for roles to be added and add them to the rolestogiveobject
-//   var rolesToGiveObject = {};
-//   for (let j = 0; j < placingsArray[0].length; j++) {
-//     rolesToGiveObject[placingsArray[0][j]] = roles[0];
-//   }
-//   if (placingsArray[0].length < 3) {
-//     for (let j = 0; j < placingsArray[1].length; j++) {
-//       rolesToGiveObject[placingsArray[1][j]] = roles[1];
-//     }
-//     if (placingsArray[0].length + placingsArray[1].length < 3) {
-//       for (let j = 0; j < placingsArray[2].length; j++) {
-//         rolesToGiveObject[placingsArray[2][j]] = roles[2];
-//       }
-//     }
-//   }
-//   // object might look something like this
-//   /**
-//    {
-//     '474178859584061461': 1,
-//     '542768282101612547': 2,
-//     '909438741351895050': 2
-//   `}
-//  */
-//   for (const uid in rolesToGiveObject) {
-//     await giveUsersRoles(guild, uid, rolesToGiveObject[uid]);
-//   }
-//   // now save to lastRoleHavers
-//   // console.log(rolesToGiveObject);
-//   saveUsersRoles(rolesToGiveObject);
-// }
-
-// async function removeRolesFromUser(guild, uid) {
-//   try {
-//     // Fetch the member using the user ID
-//     const member = await guild.members.fetch(uid);
-
-//     // Remove the specified roles
-//     await member.roles.remove(roles);
-
-//     console.log(`Removed roles from ${member.user.tag}`);
-//   } catch (error) {
-//     console.error(`Error: ${error.message}`);
-//   }
-// }
-
-// async function giveUsersRoles(guild, uid, role) {
-//   try {
-//     // Fetch the member using the user ID
-//     const member = await guild.members.fetch(uid);
-
-//     // Remove the specified roles
-//     await member.roles.add(role);
-
-//     console.log(`Added role for ${member.user.tag}`);
-//   } catch (error) {
-//     console.error(`Error: ${error.message}`);
-//   }
-// }
-
-// module.exports = {
-//   burgerMsg,
-//   burgerLbMsg,
-//   updateBurgerRoles,
-// };
+module.exports = {
+  burgerMsg,
+  burgerLbMsg,
+};
