@@ -31,7 +31,7 @@ client.login(process.env.botToken).then(() => {
 
 client.on("ready", async () => {
   // await checkRankings(client.channels.cache.get(process.env.recordsChannelId));
-  // await registerCommands(client);
+  await registerCommands(client);
   // await handleComp(client);
 
   const burgerEmoji = "🍔";
