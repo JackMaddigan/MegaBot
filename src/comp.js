@@ -153,7 +153,7 @@ async function postScrambles(scrambleChannel) {
 async function handleComp(client) {
   try {
     let week = await readData(`SELECT week FROM comp LIMIT 1`);
-    if (week.length === 0) week = 52;
+    if (week.length === 0) week = 62;
     else week = week[0].week;
     // get ranked results
     const eventArrays = await getRankedResults();
@@ -358,7 +358,7 @@ async function sendResults(client, eventArrays, week) {
       )},${toDisp(result.best)},${result.list}`;
     }
     // }
-    fs.writeFileSync("./results.txt", textFileText);
+    fs.writeFileSync("./results.csv", textFileText);
     const adminChannel = await client.channels.cache.get(
       process.env.adminChannelId
     );

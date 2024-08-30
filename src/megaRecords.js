@@ -17,6 +17,13 @@ const getPicPath = {
   CR: "https://raw.githubusercontent.com/JackMaddigan/images/main/cr.png",
   NR: "https://raw.githubusercontent.com/JackMaddigan/images/main/nr.png",
 };
+
+const roles = {
+  WR: process.env.wrPing,
+  CR: process.env.crPing,
+  NR: process.env.nrPing,
+};
+
 const interval = 900000; // One hour in milliseconds is 3600000, 1 day is 8.64e+7, 1 week is 6.048e+8, 15 min 900000
 
 async function fetchRecentRecords(client, date) {
@@ -33,7 +40,6 @@ async function fetchRecentRecords(client, date) {
     });
 
     for (const recentRecord of recentRecords) {
-      console.log(recentRecord.result.enteredAt);
       // const eventId = recentRecord.result.round.competitionEvent.event.id;
       const result = toDisp(recentRecord.attemptResult);
       const embed = new EmbedBuilder()
@@ -60,9 +66,10 @@ async function fetchRecentRecords(client, date) {
         )
         .setThumbnail(getPicPath[recentRecord.tag])
         .setTimestamp();
+      const rolePing = `<@&${roles[recentRecord.tag]}>`;
       await client.channels.cache
         .get(process.env.recordsChannelId)
-        .send({ embeds: [embed] })
+        .send({ embeds: [embed], content: rolePing })
         .catch((error) => console.error(error));
     }
   } catch (error) {

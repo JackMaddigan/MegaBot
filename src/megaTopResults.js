@@ -1,4 +1,10 @@
-const { getData, saveData } = require("./db");
+const {
+  getData,
+  saveData,
+  readData,
+  deleteData,
+  bulkSaveData,
+} = require("./db");
 const { EmbedBuilder } = require("discord.js");
 const { toDisp } = require("./compHelpers");
 
@@ -15,130 +21,106 @@ async function fetchNewRankings(type) {
     }
 
     const data = await response.json();
-    return data; // Optionally return the data
+    return data;
   } catch (error) {
     console.error("There was a problem fetching the data:", error);
-    return null; // Return null or handle the error as needed
+    return null;
   }
 }
+
 async function checkRankings(channel) {
-  var fullSingleData = await fetchNewRankings("single");
-  var singleData = fullSingleData.items;
-  var singleTop25 = [];
-  for (let i = 0; i < 25; i++) {
-    if (i > 0) {
-      if (singleData[i].personId === singleData[i - 1].personId) {
-        // remove duplicate
-        singleData.splice(i, 1);
-      }
-    }
-    // add to array
-    singleTop25.push(singleData[i]);
-  }
-  var fullAverageData = await fetchNewRankings("average");
-  var averageData = fullAverageData.items;
-  var averageTop25 = [];
-  for (let i = 0; i < 25; i++) {
-    if (i > 0) {
-      if (averageData[i].personId === averageData[i - 1].personId) {
-        // remove duplicate
-        singleData.splice(i, 1);
-      }
-    }
+  try {
+    const toNotify = [];
+    const newTopPlayerResultsArrayToSaveToDB = [];
+    const types = ["single", "average"];
+    for (const type of types) {
+      var newTopPlayerResults = (await fetchNewRankings(type))?.items.splice(
+        0,
+        25
+      );
+      const oldTopPlayerResults = await readData(
+        `SELECT * FROM lastTopPlayers WHERE type=?`,
+        [type]
+      );
+      // console.log("oldTopPlayerResults", oldTopPlayerResults);
+      for (const newResult of newTopPlayerResults) {
+        // Make item to put in array to save to db
+        newTopPlayerResultsArrayToSaveToDB.push([
+          newResult.personId,
+          type,
+          newResult.best,
+        ]);
 
-    averageTop25.push(averageData[i]);
-  }
+        // Add new things to save but don't add anything to toNotify because the db will be empty and it will spam old records
+        if (oldTopPlayerResults.length === 0) continue;
 
-  //   for each type check if wcaid and time !matches an old entry
-  //   returns array of all new records and also saves up to date records to db
-  const newTop25Results = await getNewTopResults(averageTop25, singleTop25);
-  //   send new top results
-  sendTopResultEmbeds(newTop25Results, channel);
-}
+        // for each newResult check if oldTopPlayerResults already has the newResult meaning it would not be new
+        const newResultIsOld = oldTopPlayerResults.some((oldResult) => {
+          return (
+            oldResult.wcaId === newResult.personId &&
+            oldResult.result === newResult.best
+          );
+        });
 
-async function getNewTopResults(averageTop25, singleTop25) {
-  const oldTop25Single = await getData("/oldRankings/oldTop25Single");
-  const oldTop25Average = await getData("/oldRankings/oldTop25Average");
-  var newTop25Averages = returnNewTop25Results(oldTop25Average, averageTop25);
-  var newTop25Singles = returnNewTop25Results(oldTop25Single, singleTop25);
-  var newTop25Results = newTop25Averages.concat(newTop25Singles);
-
-  //   newTop25Results now has all the new top 25 results
-  //   Save most recent data to db
-  var singlesToSave = {};
-  var averagesToSave = {};
-  for (let i = 0; i < averageTop25.length; i++) {
-    singlesToSave[singleTop25[i]["personId"]] = singleTop25[i]["best"];
-    averagesToSave[averageTop25[i]["personId"]] = averageTop25[i]["best"];
-  }
-  saveData("/oldRankings/oldTop25Single", singlesToSave);
-  saveData("/oldRankings/oldTop25Average", averagesToSave);
-  return newTop25Results;
-}
-
-function returnNewTop25Results(oldData, newData) {
-  // used for both single and average and returns that to getNewTopResults which combines into one array
-  var newTop25Results = [];
-  for (let i = 0; i < newData.length; i++) {
-    if (oldData) {
-      let uid = newData[i]["personId"];
-      if (oldData[uid]) {
-        if (oldData[uid] > newData[i]["best"]) {
-          // new top 25 result
-          newTop25Results.push(newData[i]);
+        // Add to array to notify only if not a record NOTE this contains records, need to filter in sendTopResultEmbeds so China records can be included after finding nationality
+        if (!newResultIsOld) {
+          toNotify.push(newResult);
         }
-      } else {
-        // not in oldData so new top 25 result
-        newTop25Results.push(newData[i]);
       }
-    } else {
-      // all new top 25 results - oldData does not exist
-      newTop25Results.push(newData[i]);
     }
+    await sendTopResultEmbeds(toNotify, channel);
+    await deleteData(`DELETE FROM lastTopPlayers`, []);
+    await bulkSaveData(
+      `INSERT INTO lastTopPlayers (wcaId, type, result) VALUES (?, ?, ?)`,
+      newTopPlayerResultsArrayToSaveToDB
+    );
+  } catch (error) {
+    console.error(error);
   }
-  return newTop25Results;
 }
 
 async function sendTopResultEmbeds(results, channel) {
-  console.log(`Sending ${results.length} embeds minus the records...`);
-  for (let i = 0; i < results.length; i++) {
-    // fetch user info from api
-    const userData = await fetchUserInfo(results[i].personId);
-    // create and send the embed
-    // exclude records
-    if (results[i].rank.country !== 1) {
-      const resultEmbed = new EmbedBuilder()
-        .setColor("#1976d2")
-        .setTitle(
-          `Megaminx ${results[i].rankType} of ${toDisp(results[i].best)}`
-        )
-        .setAuthor({
-          name: `${userData.name}`,
-          //   iconURL: record.result.person.avatar.thumbUrl || missingAvatar,
-          //   url: `https://www.worldcubeassociation.org/persons/${record.result.person.wcaId}`,
-        })
-        .setDescription(
-          ` :flag_${userData.country.toLowerCase()}: WR${
-            results[i].rank.world
-          } CR${results[i].rank.continent} NR${results[i].rank.country}`
-        )
-        .setTimestamp()
-        .setFooter({
-          text: "Recently ",
-        });
+  try {
+    const top25Ping = process.env.top25Ping;
+    for (const result of results) {
+      // fetch user info from api
+      const userData = await fetchUserInfo(result.personId);
+      // create and send the embed
+      // exclude records
+      if (result.rank.country !== 1 || userData.country === "CN") {
+        const color =
+          result.rank.world === 1
+            ? "#f44336"
+            : result.rank.continent === 1
+            ? "#ffeb3b"
+            : result.rank.country === 1
+            ? "00e676"
+            : "#1976d2";
+        const resultEmbed = new EmbedBuilder()
+          .setColor(color)
+          .setTitle(`Megaminx ${result.rankType} of ${toDisp(result.best)}`)
+          .setAuthor({
+            name: `${userData.name}`,
+          })
+          .setDescription(
+            ` :flag_${userData.country.toLowerCase()}: WR${
+              result.rank.world
+            } CR${result.rank.continent} NR${result.rank.country}`
+          )
+          .setTimestamp();
 
-      // .setThumbnail(getPicPath[record.tag])
-      // .setTimestamp();
-
-      channel
-        .send({
-          embeds: [resultEmbed],
-          content: `<@&${process.env.top25Ping}>`,
-        })
-        .catch((error) => {
-          console.error(error);
-        });
+        await channel
+          .send({
+            embeds: [resultEmbed],
+            content: `<@&${top25Ping}>`,
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
     }
+  } catch (error) {
+    console.error(error);
   }
 }
 
