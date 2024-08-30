@@ -1,4 +1,4 @@
-const { readData, saveData, deleteData } = require("./db");
+const { readData } = require("./db");
 
 const eventIdToName = { minx: "Megaminx" };
 

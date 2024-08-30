@@ -1,10 +1,4 @@
-const {
-  getData,
-  saveData,
-  readData,
-  deleteData,
-  bulkSaveData,
-} = require("./db");
+const { readData, deleteData, bulkSaveData } = require("./db");
 const { EmbedBuilder } = require("discord.js");
 const { toDisp } = require("./compHelpers");
 
