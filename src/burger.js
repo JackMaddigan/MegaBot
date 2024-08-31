@@ -15,7 +15,7 @@ const roles = [
 async function burgerMsg(msg) {
   try {
     const timeNow = Date.now();
-    const userLastBurgerTime = lastBurgerTimes[msg.authorId];
+    const userLastBurgerTime = lastBurgerTimes[msg.author.id];
     var coolDownTime = userLastBurgerTime
       ? timeNow - userLastBurgerTime
       : timeNow;
