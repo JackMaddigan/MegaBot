@@ -52,7 +52,7 @@ async function burgerMsg(msg) {
       if (difference >= burgerWaitDuration) {
         // it has been 6 hours
         const uid = msg.author.id;
-        const userName = msg.author.globalName;
+        const userName = msg.author.username;
         lastBurger = timeNow;
         lastBurgerUser = userName;
         await msg.reply(":hamburger:");
