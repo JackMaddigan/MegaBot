@@ -11,7 +11,7 @@ const {
 } = require("./comp");
 
 const { registerCommands } = require("./commands");
-const { burgerMsg, burgerLbMsg } = require("./burger");
+const { burgerMsg, burgerLbMsg, updateBurgerRoles } = require("./burger");
 const { fetchRecentRecords } = require("./megaRecords");
 const { checkRankings } = require("./megaTopResults");
 

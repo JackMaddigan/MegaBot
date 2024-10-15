@@ -176,11 +176,13 @@ async function updateBurgerRoles(guild) {
     // podium contains all it needs and roleId contains necessary role
     // need to decide toAdd and toRemove
     for (const item of podium) {
+      console.log("item", item);
       const uid = item.id;
       const user = await guild.members.fetch(uid);
       const hasRole = user.roles.cache.has(roles[item.placing - 1]);
       // if not has role, add the role
       if (!hasRole) {
+        console.log(item, " does not have role");
         await addRole(user, roles[item.placing - 1]);
         await saveData(
           `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
@@ -189,11 +191,13 @@ async function updateBurgerRoles(guild) {
       }
     }
     for (const item of oldRoleHavers) {
+      console.log("item of old role havers", item);
       // {id: text, roleId: text}
       // check to see if item is in podium with correct role
       // if so dont remove, else remove
       let remove = true;
       for (const podiumItem of podium) {
+        console.log("podiumItem", podiumItem);
         if (podiumItem.id === item.id && podiumItem.roleId === item.roleId) {
           remove = false; // they are in the podium with the same role, so it does not need to be removed (also wont be included in toAdd as it checks if they have it already before adding)
         }
