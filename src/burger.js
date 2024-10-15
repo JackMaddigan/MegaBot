@@ -212,7 +212,7 @@ async function updateBurgerRoles(guild) {
         await user.roles.remove(role);
         console.info(`Removed ${role.name} from ${user.user.username}`);
         await deleteData(`DELETE * FROM burgerLastRoleHavers WHERE id=?`, [
-          item.user.id,
+          item.id,
         ]);
       }
     }
