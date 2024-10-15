@@ -358,12 +358,12 @@ async function sendResults(client, eventArrays, week) {
       )},${toDisp(result.best)},${result.list}`;
     }
     // }
-    fs.writeFileSync("./results.csv", textFileText);
+    fs.writeFileSync("./results.txt", textFileText);
     const adminChannel = await client.channels.cache.get(
       process.env.adminChannelId
     );
     await adminChannel
-      .send({ files: ["./results.csv"] })
+      .send({ files: ["./results.txt"] })
       .catch((error) => console.error(error));
   } catch (error) {
     console.error(error);

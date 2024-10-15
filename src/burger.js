@@ -159,8 +159,6 @@ async function updateBurgerRoles(guild) {
       []
     );
     const burgerRankings = await orderBurgerRankings();
-    const toRemove = []; // {uid: text, roleId: text}
-    const toAdd = []; // {uid: text, roleId: text}
     let podium = burgerRankings.filter((item) => item.placing === 1);
     podium.forEach((item) => {
       item.roleId = roles[item.placing - 1]; // Update each item’s roleId
@@ -181,7 +179,14 @@ async function updateBurgerRoles(guild) {
       const uid = item.id;
       const user = await guild.members.fetch(uid);
       const hasRole = user.roles.cache.has(roles[item.placing - 1]);
-      if (!hasRole) toAdd.push(item);
+      // if not has role, add the role
+      if (!hasRole) {
+        await addRole(user, roles[item.placing - 1]);
+        await saveData(
+          `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
+          [item.id, item.roleId]
+        );
+      }
     }
     for (const item of oldRoleHavers) {
       // {id: text, roleId: text}
@@ -197,6 +202,7 @@ async function updateBurgerRoles(guild) {
       if (remove) {
         // Fetch the role object
         const role = guild.roles.cache.get(item.roleId);
+        const user = await guild.members.fetch(item.id);
         if (!role) throw new Error("Role not found");
         await user.roles.remove(role);
         console.info(`Removed ${role.name} from ${user.username}`);
@@ -205,20 +211,18 @@ async function updateBurgerRoles(guild) {
         ]);
       }
     }
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-    for (const item of toAdd) {
-      // add role
-      const member = await guild.members.fetch(item.id);
-      const role = guild.roles.cache.get(item.roleId);
-      if (!role) throw new Error("Role not found");
-      // Add the role to the member
-      await member.roles.add(role);
-      console.info(`Added role ${role.name} to user ${member.user.tag}`);
-      await saveData(
-        `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
-        [item.id, item.roleId]
-      );
-    }
+async function addRole(user, roleId) {
+  try {
+    const role = guild.roles.cache.get(roleId);
+    if (!role) throw new Error("Role not found");
+    // Add the role to the member
+    await user.roles.add(role);
+    console.info(`Added role ${role.name} to user ${user.user.tag}`);
   } catch (error) {
     console.error(error);
   }
