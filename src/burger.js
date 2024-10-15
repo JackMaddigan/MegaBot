@@ -210,9 +210,9 @@ async function updateBurgerRoles(guild) {
         console.log(user);
         if (!role) throw new Error("Role not found");
         await user.roles.remove(role);
-        console.info(`Removed ${role.name} from ${user.username}`);
+        console.info(`Removed ${role.name} from ${user.user.username}`);
         await deleteData(`DELETE * FROM burgerLastRoleHavers WHERE id=?`, [
-          item.id,
+          item.user.id,
         ]);
       }
     }
