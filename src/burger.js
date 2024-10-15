@@ -207,6 +207,7 @@ async function updateBurgerRoles(guild) {
         // Fetch the role object
         const role = guild.roles.cache.get(item.roleId);
         const user = await guild.members.fetch(item.id);
+        console.log(user);
         if (!role) throw new Error("Role not found");
         await user.roles.remove(role);
         console.info(`Removed ${role.name} from ${user.username}`);
