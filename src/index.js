@@ -1,7 +1,7 @@
 require("dotenv").config();
 const cron = require("node-cron");
 
-const { Client, IntentsBitField, Partials } = require("discord.js");
+const { Client, IntentsBitField, Partials, Guild } = require("discord.js");
 const {
   handleSubmit,
   unsubmit,
@@ -54,6 +54,8 @@ client.on("messageCreate", async (message) => {
       message.channel.id === process.env.botChannelId
     ) {
       await burgerLbMsg(message);
+    } else if (message.content == "updateBurgerRoles") {
+      await updateBurgerRoles(msg.guild);
     }
   } catch (error) {
     console.error(error);
