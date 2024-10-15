@@ -11,7 +11,7 @@ const {
 } = require("./comp");
 
 const { registerCommands } = require("./commands");
-const { burgerMsg, burgerLbMsg, updateBurgerRoles } = require("./burger");
+const { burgerMsg, burgerLbMsg } = require("./burger");
 const { fetchRecentRecords } = require("./megaRecords");
 const { checkRankings } = require("./megaTopResults");
 
@@ -54,8 +54,6 @@ client.on("messageCreate", async (message) => {
       message.channel.id === process.env.botChannelId
     ) {
       await burgerLbMsg(message);
-    } else if (message.content == "updateBurgerRoles") {
-      await updateBurgerRoles(client.guilds.cache.get("834299434119725086"));
     }
   } catch (error) {
     console.error(error);

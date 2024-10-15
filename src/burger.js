@@ -231,5 +231,4 @@ async function addRole(user, roleId) {
 module.exports = {
   burgerMsg,
   burgerLbMsg,
-  updateBurgerRoles,
 };
