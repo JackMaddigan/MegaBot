@@ -181,7 +181,7 @@ async function updateBurgerRoles(guild) {
       const hasRole = user.roles.cache.has(roles[item.placing - 1]);
       // if not has role, add the role
       if (!hasRole) {
-        await addRole(user, roles[item.placing - 1]);
+        await addRole(user, roles[item.placing - 1], guild);
         await saveData(
           `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
           [item.id, item.roleId]
@@ -216,7 +216,7 @@ async function updateBurgerRoles(guild) {
   }
 }
 
-async function addRole(user, roleId) {
+async function addRole(user, roleId, guild) {
   try {
     const role = guild.roles.cache.get(roleId);
     if (!role) throw new Error("Role not found");
