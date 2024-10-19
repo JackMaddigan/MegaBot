@@ -14,6 +14,7 @@ const { registerCommands } = require("./commands");
 const { burgerMsg, burgerLbMsg } = require("./burger");
 const { fetchRecentRecords } = require("./megaRecords");
 const { checkRankings } = require("./megaTopResults");
+const { updateBurgerRoles } = require("./burger");
 
 const client = new Client({
   intents: [
@@ -55,7 +56,7 @@ client.on("messageCreate", async (message) => {
     ) {
       await burgerLbMsg(message);
     } else if (message.content == "s!updateBurgerRoles") {
-      updateBurgerRoles(guild);
+      updateBurgerRoles(client.guild);
     }
   } catch (error) {
     console.error(error);
