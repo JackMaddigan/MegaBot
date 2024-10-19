@@ -56,7 +56,7 @@ client.on("messageCreate", async (message) => {
     ) {
       await burgerLbMsg(message);
     } else if (message.content == "s!updateBurgerRoles") {
-      updateBurgerRoles(client.guild);
+      updateBurgerRoles(message.guild);
     }
   } catch (error) {
     console.error(error);
