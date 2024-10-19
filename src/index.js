@@ -54,6 +54,8 @@ client.on("messageCreate", async (message) => {
       message.channel.id === process.env.botChannelId
     ) {
       await burgerLbMsg(message);
+    } else if (message.content == "s!updateBurgerRoles") {
+      updateBurgerRoles(guild);
     }
   } catch (error) {
     console.error(error);
