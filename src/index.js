@@ -28,6 +28,7 @@ const client = new Client({
 client.on("ready", async () => {
   console.log("MegaBot is online!");
   await registerCommands(client);
+  await updateBurgerRoles(await client.guilds.fetch("834299434119725086"));
   const burgerEmoji = "🍔";
   client.user.setPresence({
     activities: [{ name: burgerEmoji }],
@@ -45,9 +46,6 @@ client.on("messageCreate", async (msg) => {
       case "s!burgertop":
         await burgertop(msg);
         break;
-      case "s!updateBurgerRoles":
-        if (msg.author.id === "637117513729048616")
-          await updateBurgerRoles(msg.guild);
       default:
         break;
     }
