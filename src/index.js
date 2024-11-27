@@ -12,7 +12,7 @@ const {
 } = require("./comp/comp");
 
 const { registerCommands } = require("./commands");
-const { burgerMsg, burgerLbMsg } = require("./burger");
+const { burgerMsg, burgerLbMsg, burgertop } = require("./burger");
 const { fetchRecentRecords } = require("./megaRecords");
 const { updateBurgerRoles } = require("./burger");
 
@@ -41,10 +41,9 @@ client.on("messageCreate", async (msg) => {
     switch (msg.content.toLowerCase()) {
       case "s!burger":
         await burgerMsg(msg);
-        await updateBurgerRoles(msg.guild);
         break;
       case "s!burgertop":
-        await burgerLbMsg(msg);
+        await burgertop(msg);
         break;
       default:
         break;

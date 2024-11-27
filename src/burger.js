@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require("@discordjs/builders");
 const { readData, saveData, deleteData } = require("./db");
-const { sendPaginatedEmbeds } = require("discord.js-embed-pagination");
+const paginateMessage = require("./paginate");
 const burgerWaitDuration = 21600000; // 21600000
 
 const lastBurgerTimes = {};
@@ -138,6 +138,31 @@ async function burgerLbMsg(msg) {
   });
 }
 
+async function burgertop(msg) {
+  let lbDataArray = await orderBurgerRankings();
+
+  // make the pages of embeds
+  const size = 10;
+  const pages = [];
+  const numPages = Math.ceil(lbDataArray.length / size);
+  let currentPageText = "";
+  for (let i = 0; i < lbDataArray.length; i++) {
+    currentPageText += `#${lbDataArray[i].placing} ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;
+    if ((i % size === 0 && i > 0) || i + 1 === lbDataArray.length) {
+      pages.push(
+        new EmbedBuilder()
+          .setTitle(":hamburger: Burger Leaderboard :hamburger:")
+          .setColor(0x00ff00)
+          .setDescription(currentPageText)
+      );
+      currentPageText = "";
+    }
+  }
+
+  // send the paginated message
+  await paginateMessage(msg, pages);
+}
+
 async function orderBurgerRankings() {
   try {
     const data = await readData(
@@ -249,4 +274,5 @@ module.exports = {
   burgerMsg,
   burgerLbMsg,
   updateBurgerRoles,
+  burgertop,
 };

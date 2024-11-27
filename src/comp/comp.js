@@ -10,10 +10,11 @@ async function handleWeeklyComp(client) {
   const resultsChannel = client.channels.cache.get(
     process.env.podiumsChannelId
   );
+  const adminChannel = client.channels.cache.get(process.env.adminChannelId);
   const rankedResultsData = await generateRankedResults();
   const podiumsTitle = `Week ${week} results!`;
   await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
-  await sendResultsFile(resultsChannel, rankedResultsData);
+  await sendResultsFile(adminChannel, rankedResultsData);
   await deleteData(`DELETE FROM results WHERE eventId != ?`, ["extra"]);
   week++;
   const submitChannel = client.channels.cache.get(process.env.submitChannelId);
@@ -111,7 +112,7 @@ async function sendPodiums(resultsChannel, rankedResultsData, title) {
   }
 }
 
-async function sendResultsFile(resultsChannel, rankedResultsData) {
+async function sendResultsFile(adminChannel, rankedResultsData) {
   let text = "Placing,Name,Average,Best,Solves";
   for (const eventId in rankedResultsData) {
     const results = rankedResultsData[eventId];
@@ -126,7 +127,7 @@ async function sendResultsFile(resultsChannel, rankedResultsData) {
   fs.writeFile("results.txt", text || "No Results", function (err) {
     if (err) throw err;
   });
-  await resultsChannel.send({ files: ["results.txt"] });
+  await adminChannel.send({ files: ["results.txt"] });
 }
 
 async function sendScrambles(scrambleChannel) {
