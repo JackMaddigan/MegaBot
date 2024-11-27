@@ -47,7 +47,7 @@ client.on("messageCreate", async (msg) => {
         break;
       case "s!updateBurgerRoles":
         if (msg.author.id === "637117513729048616")
-          updateBurgerRoles(msg.guild);
+          await updateBurgerRoles(msg.guild);
       default:
         break;
     }
