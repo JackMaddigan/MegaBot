@@ -1,18 +1,17 @@
 require("dotenv").config();
 const cron = require("node-cron");
 
-const { Client, IntentsBitField, Partials, Guild } = require("discord.js");
+const { Client, IntentsBitField, Partials } = require("discord.js");
 const {
   handleSubmit,
   handleUnsubmit,
   handleView,
   handleCurrentRankings,
-  handleComp,
   handleWeeklyComp,
 } = require("./comp/comp");
 
 const { registerCommands } = require("./commands");
-const { burgerMsg, burgerLbMsg, burgertop } = require("./burger");
+const { burgerMsg, burgertop } = require("./burger");
 const { fetchRecentRecords } = require("./megaRecords");
 const { updateBurgerRoles } = require("./burger");
 
@@ -28,6 +27,7 @@ const client = new Client({
 
 client.on("ready", async () => {
   console.log("MegaBot is online!");
+  await registerCommands(client);
   const burgerEmoji = "🍔";
   client.user.setPresence({
     activities: [{ name: burgerEmoji }],
@@ -45,6 +45,9 @@ client.on("messageCreate", async (msg) => {
       case "s!burgertop":
         await burgertop(msg);
         break;
+      case "s!updateBurgerRoles":
+        if (msg.author.id === "637117513729048616")
+          updateBurgerRoles(msg.guild);
       default:
         break;
     }

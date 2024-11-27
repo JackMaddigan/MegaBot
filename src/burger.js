@@ -144,7 +144,6 @@ async function burgertop(msg) {
   // make the pages of embeds
   const size = 10;
   const pages = [];
-  const numPages = Math.ceil(lbDataArray.length / size);
   let currentPageText = "";
   for (let i = 0; i < lbDataArray.length; i++) {
     currentPageText += `#${lbDataArray[i].placing} ${lbDataArray[i].username} **${lbDataArray[i].score}**\n`;

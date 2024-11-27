@@ -72,6 +72,16 @@ async function test() {
       [item.id, item.score, item.userName]
     );
   }
+
+  await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
+    "lastBurger",
+    "1732689845335",
+  ]);
+
+  await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
+    "lastBurgerUser",
+    "sss497",
+  ]);
 }
 
 test();
