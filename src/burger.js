@@ -1,5 +1,6 @@
 const { EmbedBuilder } = require("@discordjs/builders");
 const { readData, saveData, deleteData } = require("./db");
+const { sendPaginatedEmbeds } = require("discord.js-embed-pagination");
 const burgerWaitDuration = 21600000; // 21600000
 
 const lastBurgerTimes = {};
@@ -16,9 +17,11 @@ async function burgerMsg(msg) {
   try {
     const timeNow = Date.now();
     const userLastBurgerTime = lastBurgerTimes[msg.author.id];
-    var coolDownTime = userLastBurgerTime
+    let coolDownTime = userLastBurgerTime
       ? timeNow - userLastBurgerTime
-      : timeNow;
+      : 15000;
+
+    // Already called burger in last 15 seconds
     if (coolDownTime < 15000) {
       try {
         const sentMessage = await msg.reply(
@@ -31,59 +34,68 @@ async function burgerMsg(msg) {
       } catch (error) {
         console.error(error);
       }
-    } else {
-      if (lastBurger == null) {
-        // bot must have started up and lost the variable values
-        let lastBurgerInfo = (
-          await readData(`SELECT * FROM burger LIMIT 1`)
-        )[0];
-        if (!lastBurgerInfo) {
-          // nothing in db so first ever burger
-          lastBurger = 0;
-        } else {
-          // update variables to what the database had
-          lastBurger = lastBurgerInfo.time;
-          lastBurgerUser = lastBurgerInfo.lastCalledUser;
-        }
-      }
-      var difference = timeNow - lastBurger;
-      // set last burger time for the user for the cooldown
-      lastBurgerTimes[msg.author.id] = timeNow;
-      if (difference >= burgerWaitDuration) {
-        // it has been 6 hours
-        const uid = msg.author.id;
-        const userName = msg.author.username;
-        lastBurger = timeNow;
-        lastBurgerUser = userName;
-        await msg.reply(":hamburger:");
-        // update last burger info in db
-        await saveData(
-          `INSERT INTO burger (id, time, lastCalledUser)
-VALUES (?, ?, ?)
-ON CONFLICT(id) 
-DO UPDATE SET time = excluded.time, lastCalledUser = excluded.lastCalledUser`,
-          [1, timeNow, userName]
-        );
-        // add to leaderboard
-        await saveData(
-          `INSERT INTO burgerLeaderboard (id, score, userName)
-VALUES (?, ?, ?)
-ON CONFLICT(id) 
-DO UPDATE SET score = score + excluded.score, userName = excluded.userName`,
-          [uid, 1, userName]
-        );
+      return;
+    }
 
-        await updateBurgerRoles(msg.guild);
-      } else {
-        var timeTillBurger = Math.round(
-          (burgerWaitDuration - difference) / 1000
-        );
-        await msg.reply(
-          `Burger was already called by **${lastBurgerUser}**, and can be called again in ${
-            Math.round((timeTillBurger / 3600) * 100) / 100
-          } hours.`
-        );
-      }
+    // Bot must have started up and lost the variable values
+    if (lastBurger == null) {
+      lastBurger =
+        Number(
+          (
+            await readData(
+              `SELECT value FROM key_value_store WHERE key=? LIMIT 1`,
+              "lastBurger"
+            )
+          )[0]?.value
+        ) || 0;
+
+      lastBurgerUser =
+        (
+          await readData(`SELECT * FROM key_value_store WHERE key=? LIMIT 1`, [
+            "lastBurgerUser",
+          ])
+        )[0]?.value || null;
+    }
+
+    let difference = timeNow - lastBurger;
+    // set last burger time for the user for the cooldown
+    lastBurgerTimes[msg.author.id] = timeNow;
+    if (difference >= burgerWaitDuration) {
+      // it has been 6 hours
+      const uid = msg.author.id;
+      const username = msg.member.displayName;
+      lastBurger = timeNow;
+      lastBurgerUser = username;
+      await msg.reply(":hamburger:");
+
+      const query = `
+  INSERT INTO key_value_store (key, value)
+  VALUES (?, ?)
+  ON CONFLICT(key) 
+  DO UPDATE SET value=excluded.value
+`;
+
+      await Promise.all([
+        saveData(query, ["lastBurger", timeNow]),
+        saveData(query, ["lastBurgerUser", lastBurgerUser]),
+      ]);
+
+      await saveData(
+        `INSERT INTO burgerLeaderboard (id, score, username)
+VALUES (?, ?, ?)
+ON CONFLICT(id) 
+DO UPDATE SET score = score + excluded.score, username = excluded.username`,
+        [uid, 1, username]
+      );
+
+      await updateBurgerRoles(msg.guild);
+    } else {
+      let timeTillBurger = Math.round((burgerWaitDuration - difference) / 1000);
+      await msg.reply(
+        `Burger was already called by **${lastBurgerUser}**, and can be called again in ${
+          Math.round((timeTillBurger / 3600) * 100) / 100
+        } hours.`
+      );
     }
   } catch (error) {
     console.error(error);
@@ -108,7 +120,7 @@ async function burgerLbMsg(msg) {
 
   let text = "";
   for (const item of ranksToShow) {
-    text += `#${item.placing}. ${item.userName} **${item.score}**\n`;
+    text += `#${item.placing}. ${item.username} **${item.score}**\n`;
   }
   await msg.reply({
     embeds: [
@@ -160,57 +172,50 @@ async function updateBurgerRoles(guild) {
     );
     const burgerRankings = await orderBurgerRankings();
     let podium = burgerRankings.filter((item) => item.placing === 1);
-    podium.forEach((item) => {
-      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
-    });
     let secondPlaces = burgerRankings.filter((item) => item.placing === 2);
-    secondPlaces.forEach((item) => {
-      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
-    });
     let thirdPlaces = burgerRankings.filter((item) => item.placing === 3);
-    thirdPlaces.forEach((item) => {
-      item.roleId = roles[item.placing - 1]; // Update each item’s roleId
-    });
+
     if (podium.length < 3) podium = podium.concat(secondPlaces);
     if (podium.length < 3) podium = podium.concat(thirdPlaces);
-    // podium contains all it needs and roleId contains necessary role
-    // need to decide toAdd and toRemove
     for (const item of podium) {
-      const uid = item.id;
-      const user = await guild.members.fetch(uid);
-      const hasRole = user.roles.cache.has(roles[item.placing - 1]);
-      // if not has role, add the role
-      if (!hasRole) {
-        await addRole(user, roles[item.placing - 1], guild);
-        await saveData(
-          `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
-          [item.id, item.roleId]
-        );
-      }
+      item.roleId = roles[item.placing - 1];
     }
-    for (const item of oldRoleHavers) {
-      // {id: text, roleId: text}
-      // check to see if item is in podium with correct role
-      // if so dont remove, else remove
-      let remove = true;
-      for (const podiumItem of podium) {
-        if (podiumItem.id === item.id && podiumItem.roleId === item.roleId) {
-          remove = false; // they are in the podium with the same role, so it does not need to be removed (also wont be included in toAdd as it checks if they have it already before adding)
-        }
-      }
 
-      if (remove) {
-        // Fetch the role object
-        const role = guild.roles.cache.get(item.roleId);
+    // remove where podium does not have the oldRoleHaver
+    const toRemove = oldRoleHavers.filter(
+      (oldRoleHaver) =>
+        !podium.some(
+          (podiumItem) =>
+            podiumItem.id === oldRoleHaver.id &&
+            podiumItem.roleId === oldRoleHaver.roleId
+        )
+    );
+
+    // include where oldRoleHavers does not have the role and user pair
+    const toAdd = podium.filter(
+      (podiumer) =>
+        !oldRoleHavers.some(
+          (oldRoleHaver) =>
+            oldRoleHaver.id === podiumer.id &&
+            oldRoleHaver.roleId === podiumer.roleId
+        )
+    );
+
+    // remove roles from toRemove
+    await Promise.all(
+      toRemove.map(async (item) => {
         const user = await guild.members.fetch(item.id);
-        if (!role) throw new Error("Role not found");
-        await user.roles.remove(role);
-        console.info(`Removed ${role.name} from ${user.user.username}`);
-        await deleteData(`DELETE FROM burgerLastRoleHavers WHERE id=?`, [
-          item.id,
-        ]);
-      }
-    }
+        await removeRole(user, item.roleId, guild);
+      })
+    );
+
+    // add roles from toAdd
+    await Promise.all(
+      toAdd.map(async (item) => {
+        const user = await guild.members.fetch(item.id);
+        await addRole(user, item.roleId, guild);
+      })
+    );
   } catch (error) {
     console.error(error);
   }
@@ -223,6 +228,18 @@ async function addRole(user, roleId, guild) {
     // Add the role to the member
     await user.roles.add(role);
     console.info(`Added role ${role.name} to user ${user.user.tag}`);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function removeRole(user, roleId, guild) {
+  try {
+    const role = guild.roles.cache.get(roleId);
+    if (!role) throw new Error("Role not found");
+    // Add the role to the member
+    await user.roles.remove(role);
+    console.info(`Removed role ${role.name} to user ${user.user.tag}`);
   } catch (error) {
     console.error(error);
   }

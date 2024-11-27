@@ -26,8 +26,9 @@ const roles = {
 
 const interval = 900000; // One hour in milliseconds is 3600000, 1 day is 8.64e+7, 1 week is 6.048e+8, 15 min 900000
 
-async function fetchRecentRecords(client, date) {
+async function fetchRecentRecords(client) {
   try {
+    const date = new Date().setSeconds(0, 0);
     // Run recent records query to get the record data from WCA Live API
     const data = await fetchWCALiveQuery(recentRecordsQuery);
 

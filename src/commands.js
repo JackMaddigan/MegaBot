@@ -1,30 +1,33 @@
 const { SlashCommandBuilder, PermissionsBitField } = require("discord.js");
+const { events } = require("./comp/events");
 
 async function registerCommands(client) {
   try {
     // Define your slash commands
     const submitCommand = new SlashCommandBuilder()
       .setName("submit")
-      .setDescription("Submit results for the weekly comp")
-      // .addStringOption((option) =>
-      //   option
-      //     .setName("event")
-      //     .setDescription("The event to submit results for")
-      //     .setRequired(true)
-      //     .addChoices(submitDropdownOptions)
-      // )
-      .addStringOption((option) =>
-        option
-          .setName("results")
-          .setDescription("Results separated by a space")
-          .setRequired(true)
-      )
-      .addUserOption((option) =>
-        option
-          .setName("submit-for")
-          .setDescription("[Admin only] Submit for someone else")
-          .setRequired(false)
+      .setDescription("Submit results for the weekly comp!");
+    for (const eventId in events) {
+      if (eventId === "extra") continue;
+      const event = events[eventId];
+      submitCommand.addSubcommand((sub) =>
+        sub
+          .setName(event.short)
+          .setDescription(`Submit results for ${event.short}`)
+          .addStringOption((option) =>
+            option
+              .setName("results")
+              .setDescription("Enter your results separated by a space")
+              .setRequired(true)
+          )
+          .addUserOption((option) =>
+            option
+              .setName("submit-for")
+              .setDescription("The user")
+              .setRequired(false)
+          )
       );
+    }
 
     const unsubmitCommand = new SlashCommandBuilder()
       .setName("unsubmit")
@@ -32,14 +35,19 @@ async function registerCommands(client) {
       .setDescription("Unsubmit results")
       .addUserOption((option) =>
         option.setName("user").setRequired(true).setDescription("The user")
+      )
+      .addStringOption((option) =>
+        option
+          .setName("event")
+          .setRequired(true)
+          .setDescription("Event to unsubmit")
+          .setChoices(
+            Object.entries(events).map(([eventId, event]) => ({
+              name: event.short || eventId,
+              value: eventId,
+            }))
+          )
       );
-    // .addStringOption((option) =>
-    //   option
-    //     .setName("event")
-    //     .setRequired(true)
-    //     .setDescription("Event to unsubmit")
-    //     .setChoices(submitDropdownOptions)
-    // );
 
     const currentRankingsCommand = new SlashCommandBuilder()
       .setName("cr")

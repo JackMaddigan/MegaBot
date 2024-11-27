@@ -6,48 +6,42 @@ const db = new sqlite3.Database(
     if (err) return console.error(err.message);
   }
 );
-// db.run(`DROP TABLE IF EXISTS burger`);
-// db.run(`DROP TABLE IF EXISTS results`);
-// db.run(`DROP TABLE IF EXISTS comp`);
-// db.run(`DROP TABLE IF EXISTS burgerLeaderboard`);
-// db.run(`DROP TABLE IF EXISTS burgerLastRoleHavers`);
-// db.run(`DROP TABLE IF EXISTS lastTopPlayers`);
 
-// Initialise results table
+// db.all("SELECT name FROM sqlite_master WHERE type='table'", [], (err, rows) => {
+//   if (err) {
+//     console.error("Error fetching tables:", err.message);
+//   } else {
+//     console.log("Tables in the database:");
+//     rows.forEach((row) => console.log(row.name));
+//   }
+// });
+//
+// db.run(`DROP TABLE IF EXISTS burgerLastRoleHavers`);
+// db.run(`DROP TABLE IF EXISTS key_value_store`);
+
 db.run(`
         CREATE TABLE IF NOT EXISTS results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             userId TEXT NOT NULL,
-            userName TEXT NOT NULL,
+            username TEXT NOT NULL,
             eventId TEXT NOT NULL,
-            list TEXT NOT NULL,
+            attempts TEXT NOT NULL,
             best INTEGER,
             average INTEGER,
-            eventFormat STRING
+            UNIQUE(userId, eventId)
+
         )
     `);
 
-db.run(`
-        CREATE TABLE IF NOT EXISTS comp (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            compData TEXT UNIQUE,
-            week INTEGER
-        )
-    `);
-
-db.run(`
-        CREATE TABLE IF NOT EXISTS burger (
-            id INTEGER UNIQUE,
-            time INTEGER,
-            lastCalledUser TEXT
-        )
-    `);
+db.run(
+  `CREATE TABLE IF NOT EXISTS key_value_store (id INTEGER PRIMARY KEY AUTOINCREMENT, key TEXT UNIQUE, value TEXT)`
+);
 
 db.run(`
         CREATE TABLE IF NOT EXISTS burgerLeaderboard (
             id TEXT PRIMARY KEY UNIQUE,
             score INTEGER,
-            userName TEXT
+            username TEXT
         )
     `);
 
@@ -57,15 +51,6 @@ db.run(`
             roleId TEXT
         )
     `);
-
-db.run(`CREATE TABLE IF NOT EXISTS lastTopPlayers (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          wcaId TEXT,
-          type TEXT,
-          result INTEGER
-  )`);
-
-// test();
 
 async function saveData(query, parameters) {
   try {

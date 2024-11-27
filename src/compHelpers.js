@@ -58,18 +58,6 @@ async function replyToInt(int, content, ephemeral) {
   }
 }
 
-async function checkIfSubbed(uid, eventId) {
-  // If the first element of the array returned exists, true : false
-  return (
-    await readData(`SELECT best FROM results WHERE eventId=? AND userId=?`, [
-      eventId,
-      uid,
-    ])
-  )[0]
-    ? true
-    : false;
-}
-
 function validateResults(splitRawResults, ei) {
   if (splitRawResults.length !== ei.numAttempts)
     return `Invalid number of attempts!\nExpected: ${ei.numAttempts}\nSubmitted: ${splitRawResults.length}`;
@@ -116,33 +104,18 @@ function calculateAo5(splitValidatedResults, numDnfOrDns, best) {
   return average;
 }
 
-function getEventInfo(eventId) {
-  const ei = {
-    numAttempts: 5,
-    format: "ao5",
-    eventId: eventId,
-    eventDisplayName: eventIdToName[eventId],
-  };
-  return ei;
-}
-
 function makeSubmissionReplyMsg(ei, ri, ui) {
   const submitForPart = ui.submitFor ? ` for ${ui.user}` : "";
-  const eventPart = ` for ${ei.eventDisplayName}`;
-  return (
-    `(${ri.list}) = ${toDisp(ri.average)} average` + eventPart + submitForPart
-  );
+  return `(${ri.list}) = ${toDisp(ri.average)} average` + submitForPart;
 }
 
 module.exports = {
   toDisp,
   toCenti,
-  getEventInfo,
   validateResults,
   calculateRI,
   makeSubmissionReplyMsg,
   checkModRole,
-  checkIfSubbed,
   replyToInt,
   eventIdToName,
 };
