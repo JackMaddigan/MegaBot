@@ -8,7 +8,7 @@ const Submission = require("./Submission");
 async function handleWeeklyComp(client) {
   let week = await getWeek();
   const resultsChannel = client.channels.cache.get(
-    process.env.podiumsChannelId
+    process.env.resultsChannelId
   );
   const adminChannel = client.channels.cache.get(process.env.adminChannelId);
   const rankedResultsData = await generateRankedResults();
