@@ -216,6 +216,18 @@ async function updateBurgerRoles(guild) {
         )
     );
 
+    // remove roles from toRemove
+    await Promise.all(
+      toRemove.map(async (item) => {
+        const user = await guild.members.fetch(item.id);
+        await removeRole(user, item.roleId, guild);
+        await deleteData(
+          `DELETE FROM burgerLastRoleHavers WHERE id=? AND roleId=?`,
+          [item.id, item.roleId]
+        );
+      })
+    );
+
     // include where oldRoleHavers does not have the role and user pair
     const toAdd = podium.filter(
       (podiumer) =>
@@ -226,19 +238,15 @@ async function updateBurgerRoles(guild) {
         )
     );
 
-    // remove roles from toRemove
-    await Promise.all(
-      toRemove.map(async (item) => {
-        const user = await guild.members.fetch(item.id);
-        await removeRole(user, item.roleId, guild);
-      })
-    );
-
     // add roles from toAdd
     await Promise.all(
       toAdd.map(async (item) => {
         const user = await guild.members.fetch(item.id);
         await addRole(user, item.roleId, guild);
+        await saveData(
+          `INSERT INTO burgerLastRoleHavers (id, roleId) VALUES (?, ?)`,
+          [item.id, item.roleId]
+        );
       })
     );
   } catch (error) {
