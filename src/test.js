@@ -78,25 +78,22 @@ const data = [
 ];
 
 async function test() {
-  let sum = 0;
   for (const item of data) {
-    sum += item.score;
-    // await saveData(
-    //   `INSERT INTO burgerLeaderboard (id, score, username) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score, username = excluded.username`,
-    //   [item.id, item.score, item.userName]
-    // );
+    await saveData(
+      `INSERT INTO burgerLeaderboard (id, score, username) VALUES (?, ?, ?) ON CONFLICT(id) DO UPDATE SET score = excluded.score, username = excluded.username`,
+      [item.id, item.score, item.userName]
+    );
   }
 
-  console.log(sum);
-  //   await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
-  //     "lastBurger",
-  //     "1732689845335",
-  //   ]);
+  await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
+    "lastBurger",
+    "1733467860508",
+  ]);
 
-  //   await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
-  //     "lastBurgerUser",
-  //     "sss497",
-  //   ]);
+  await saveData(`INSERT INTO key_value_store (key, value) VALUES (?, ?)`, [
+    "lastBurgerUser",
+    "2019JYOT01 (151/151) (178/178)",
+  ]);
 }
 
 test();
