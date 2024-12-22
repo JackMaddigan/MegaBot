@@ -46,7 +46,7 @@ async function fetchRecentRecords(client) {
       const embed = new EmbedBuilder()
         .setAuthor({
           name: recentRecord.result.person.name,
-          iconURL: recentRecord.result.person.avatar.thumbUrl || missingAvatar,
+          iconURL: recentRecord.result.person.avatar?.thumbUrl || missingAvatar,
           url: `https://www.worldcubeassociation.org/persons/${recentRecord.result.person.wcaId}`,
         })
         .setColor(getColorOfTag[recentRecord.tag])

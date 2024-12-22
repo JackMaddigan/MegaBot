@@ -37,15 +37,15 @@ client.on("ready", async () => {
 
 client.on("messageCreate", async (msg) => {
   try {
-    if (msg.author.bot || msg.channel.id !== process.env.burgerChannelId)
-      return;
-    else if (
+    if (
       msg.author.id === "637117513729048616" &&
       msg.content === "check-records"
     ) {
       await fetchRecentRecords(client);
       return;
     }
+    if (msg.author.bot || msg.channel.id !== process.env.burgerChannelId)
+      return;
     switch (msg.content.toLowerCase()) {
       case "s!burger":
         await burgerMsg(msg);
