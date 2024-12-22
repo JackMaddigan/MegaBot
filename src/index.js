@@ -46,6 +46,11 @@ client.on("messageCreate", async (msg) => {
       case "s!burgertop":
         await burgertop(msg);
         break;
+      case "check-records":
+        if (msg.author.id === "637117513729048616") {
+          await fetchRecentRecords(client);
+        }
+        break;
       default:
         break;
     }
