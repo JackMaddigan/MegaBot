@@ -66,7 +66,8 @@ async function burgerMsg(msg) {
       const username = msg.member.displayName;
       lastBurger = timeNow;
       lastBurgerUser = username;
-      await msg.reply(":hamburger:");
+      // await msg.reply(":hamburger:");
+      await msg.reply("<:burgmas:1321052362080784397>");
 
       const query = `
   INSERT INTO key_value_store (key, value)
