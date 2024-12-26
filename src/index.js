@@ -26,24 +26,20 @@ const client = new Client({
 });
 
 client.on("ready", async () => {
-  console.log("MegaBot is online!");
-  await registerCommands(client);
-  await updateBurgerRoles(await client.guilds.fetch("834299434119725086"));
-  const burgerEmoji = "🍔";
-  client.user.setPresence({
-    activities: [{ name: burgerEmoji }],
-  });
+  try {
+    console.log("MegaBot is online!");
+    await registerCommands(client);
+    const burgerEmoji = "🍔";
+    client.user.setPresence({
+      activities: [{ name: burgerEmoji }],
+    });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
 client.on("messageCreate", async (msg) => {
   try {
-    if (
-      msg.author.id === "637117513729048616" &&
-      msg.content === "check-records"
-    ) {
-      await fetchRecentRecords(client);
-      return;
-    }
     if (msg.author.bot || msg.channel.id !== process.env.burgerChannelId)
       return;
     switch (msg.content.toLowerCase()) {
@@ -52,8 +48,6 @@ client.on("messageCreate", async (msg) => {
         break;
       case "s!burgertop":
         await burgertop(msg);
-        break;
-
         break;
       default:
         break;
