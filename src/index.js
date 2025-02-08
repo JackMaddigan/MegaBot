@@ -41,7 +41,7 @@ client.on("ready", async () => {
 client.on("messageCreate", async (msg) => {
   try {
     if (
-      msg.user.id === "637117513729048616" &&
+      msg.author.id === "637117513729048616" &&
       msg.content === "s!checkrecords"
     )
       await fetchRecentRecords(client);
