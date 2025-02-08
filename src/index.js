@@ -40,6 +40,11 @@ client.on("ready", async () => {
 
 client.on("messageCreate", async (msg) => {
   try {
+    if (
+      msg.user.id === "637117513729048616" &&
+      msg.content === "s!checkrecords"
+    )
+      await fetchRecentRecords(client);
     if (msg.author.bot || msg.channel.id !== process.env.burgerChannelId)
       return;
     switch (msg.content.toLowerCase()) {
@@ -49,9 +54,7 @@ client.on("messageCreate", async (msg) => {
       case "s!burgertop":
         await burgertop(msg);
         break;
-      case "s!checkrecords":
-        if (msg.user.id === "637117513729048616")
-          await fetchRecentRecords(client);
+
       default:
         break;
     }
