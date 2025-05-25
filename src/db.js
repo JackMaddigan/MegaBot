@@ -17,7 +17,6 @@ const db = new sqlite3.Database(
 // });
 //
 // db.run(`DROP TABLE IF EXISTS burgerLeaderboard`);
-// db.run(`DROP TABLE IF EXISTS key_value_store`);
 
 db.run(`
         CREATE TABLE IF NOT EXISTS results (
@@ -51,6 +50,12 @@ db.run(`
             roleId TEXT
         )
     `);
+
+db.run(`CREATE TABLE IF NOT EXISTS announcedRecords (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          key TEXT
+  )`
+)
 
 async function saveData(query, parameters) {
   try {

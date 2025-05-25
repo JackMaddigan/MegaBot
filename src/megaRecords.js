@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const { toDisp } = require("./compHelpers");
 const { recentRecordsQuery } = require("./queries");
+const { readData, saveData } = require("./db");
 const missingAvatar =
   "https://www.worldcubeassociation.org/assets/missing_avatar_thumb-d77f478a307a91a9d4a083ad197012a391d5410f6dd26cb0b0e3118a5de71438.png";
 
@@ -28,20 +29,29 @@ const interval = 900000; // One hour in milliseconds is 3600000, 1 day is 8.64e+
 
 async function fetchRecentRecords(client) {
   try {
-    const date = new Date().setSeconds(0, 0);
-    // Run recent records query to get the record data from WCA Live API
+    console.log(await readData(`SELECT * FROM announcedRecords`));
+    console.log(eventIds);
     const data = await fetchWCALiveQuery(recentRecordsQuery);
 
-    // Sort data to include only events in the eventIds set and that are entered in the past interval amount of time
-    const recentRecords = data.data.recentRecords.filter((recentRecord) => {
-      return (
-        date - new Date(recentRecord.result.enteredAt) < interval &&
-        eventIds.has(recentRecord.result.round.competitionEvent.event.id)
-      );
-    });
+    // Sort data to include only events in the eventIds set
+    const recentRecords = data.data.recentRecords.filter((recentRecord) =>  
+      eventIds.has(recentRecord.result.round.competitionEvent.event.id)
+    );
 
     for (const recentRecord of recentRecords) {
-      // const eventId = recentRecord.result.round.competitionEvent.event.id;
+      console.log(await readData(`SELECT * FROM announcedRecords`));
+
+      // Make result id key
+      const resultKey = 
+        `${recentRecord.type}_${recentRecord.attemptResult}_${recentRecord.result.person.wcaId}_${recentRecord.result.round.id}`;
+      
+      // Skip if it was already announced
+      const skip = (await readData(`SELECT id FROM announcedRecords WHERE key=?`, [resultKey])).length > 0;
+      if(skip) { continue; }
+
+      // Save new record to db
+      await saveData(`INSERT INTO announcedRecords (key) VALUES (?)`, [resultKey]);
+
       const result = toDisp(recentRecord.attemptResult);
       const embed = new EmbedBuilder()
         .setAuthor({

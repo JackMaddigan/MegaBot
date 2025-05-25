@@ -25,10 +25,11 @@ const client = new Client({
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-client.on("ready", async () => {
+client.once("ready", async () => {
   try {
     console.log("MegaBot is online!");
-    await registerCommands(client);
+    await fetchRecentRecords(client);
+    // await registerCommands(client);
     const burgerEmoji = "🍔";
     client.user.setPresence({
       activities: [{ name: burgerEmoji }],
@@ -40,11 +41,6 @@ client.on("ready", async () => {
 
 client.on("messageCreate", async (msg) => {
   try {
-    if (
-      msg.author.id === "637117513729048616" &&
-      msg.content === "s!checkrecords"
-    )
-      await fetchRecentRecords(client);
     if (msg.author.bot || msg.channel.id !== process.env.burgerChannelId)
       return;
     switch (msg.content.toLowerCase()) {
