@@ -25,12 +25,8 @@ const roles = {
   NR: process.env.nrPing,
 };
 
-const interval = 900000; // One hour in milliseconds is 3600000, 1 day is 8.64e+7, 1 week is 6.048e+8, 15 min 900000
-
-async function fetchRecentRecords(client) {
+async function fetchRecentRecords(client, send=true) {
   try {
-    console.log(await readData(`SELECT * FROM announcedRecords`));
-    console.log(eventIds);
     const data = await fetchWCALiveQuery(recentRecordsQuery);
 
     // Sort data to include only events in the eventIds set
@@ -39,8 +35,6 @@ async function fetchRecentRecords(client) {
     );
 
     for (const recentRecord of recentRecords) {
-      console.log(await readData(`SELECT * FROM announcedRecords`));
-
       // Make result id key
       const resultKey = 
         `${recentRecord.type}_${recentRecord.attemptResult}_${recentRecord.result.person.wcaId}_${recentRecord.result.round.id}`;
@@ -51,6 +45,9 @@ async function fetchRecentRecords(client) {
 
       // Save new record to db
       await saveData(`INSERT INTO announcedRecords (key) VALUES (?)`, [resultKey]);
+
+      // on startup run the records check but don't send, only save
+      if(!send){ continue; }
 
       const result = toDisp(recentRecord.attemptResult);
       const embed = new EmbedBuilder()

@@ -16,7 +16,7 @@ const db = new sqlite3.Database(
 //   }
 // });
 //
-// db.run(`DROP TABLE IF EXISTS burgerLeaderboard`);
+// db.run(`DROP TABLE IF EXISTS announcedRecords`);
 
 db.run(`
         CREATE TABLE IF NOT EXISTS results (

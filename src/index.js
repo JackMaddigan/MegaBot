@@ -28,7 +28,7 @@ const client = new Client({
 client.once("ready", async () => {
   try {
     console.log("MegaBot is online!");
-    await fetchRecentRecords(client);
+    await fetchRecentRecords(client, false);
     // await registerCommands(client);
     const burgerEmoji = "🍔";
     client.user.setPresence({
