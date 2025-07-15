@@ -29,7 +29,7 @@ client.once("ready", async () => {
   try {
     console.log("MegaBot is online!");
     await fetchRecentRecords(client, false);
-    // await registerCommands(client);
+    await registerCommands(client);
     const burgerEmoji = "🍔";
     client.user.setPresence({
       activities: [{ name: burgerEmoji }],
@@ -76,6 +76,9 @@ client.on("interactionCreate", async (interaction) => {
         break;
       case "view":
         await handleView(interaction);
+        break;
+      case "run-comp":
+        await handleWeeklyComp(client);
         break;
       default:
         break;

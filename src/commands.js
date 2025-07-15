@@ -58,12 +58,17 @@ async function registerCommands(client) {
       .setName("view")
       .setDescription("See your results for the weekly comp");
 
+    const compCommand = new SlashCommandBuilder()
+      .setName("run-comp")
+      .setDefaultMemberPermissions(PermissionsBitField.Flags.KickMembers)
+      .setDescription("ONLY USE IF COMP DOESN'T RUN AUTOMATICALLY");
     // Register the slash commands
     await client.application.commands.set([
       submitCommand,
       unsubmitCommand,
       currentRankingsCommand,
       viewCommand,
+      compCommand
     ]);
     console.log("Slash commands registered successfully.");
   } catch (error) {
