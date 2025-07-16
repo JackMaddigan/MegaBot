@@ -190,7 +190,6 @@ function delay(ms) {
 
 async function updateBurgerRoles(guild) {
   try {
-    console.log("updating roles");
     const oldRoleHavers = await readData(
       `SELECT * FROM burgerLastRoleHavers`,
       []
