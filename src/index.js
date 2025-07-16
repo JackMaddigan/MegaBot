@@ -29,7 +29,7 @@ client.once("ready", async () => {
   try {
     console.log("MegaBot is online!");
     await fetchRecentRecords(client, false);
-    await registerCommands(client);
+    // await registerCommands(client);
     const burgerEmoji = "🍔";
     client.user.setPresence({
       activities: [{ name: burgerEmoji }],
@@ -79,6 +79,8 @@ client.on("interactionCreate", async (interaction) => {
         break;
       case "run-comp":
         await handleWeeklyComp(client);
+        console.info(new Date().toString(), interaction.user.username, "Manual weekly comp run");
+        await interaction.reply("Done");
         break;
       default:
         break;
@@ -91,6 +93,7 @@ client.on("interactionCreate", async (interaction) => {
 // At 22:00 on Tuesday Handle Comp
 cron.schedule("0 22 * * 1", async () => {
   try {
+    console.info(new Date().toString(), "Automated weekly comp run");
     await handleWeeklyComp(client);
   } catch (error) {
     console.error(error);
