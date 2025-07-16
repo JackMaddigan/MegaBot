@@ -78,9 +78,10 @@ client.on("interactionCreate", async (interaction) => {
         await handleView(interaction);
         break;
       case "run-comp":
+        await interaction.deferReply();
         await handleWeeklyComp(client);
         console.info(new Date().toString(), interaction.user.username, "Manual weekly comp run");
-        await interaction.reply("Done");
+        await interaction.editReply("Done");
         break;
       default:
         break;
