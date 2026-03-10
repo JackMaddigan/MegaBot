@@ -91,8 +91,8 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-// At 22:00 on Tuesday Handle Comp
-cron.schedule("0 22 * * 1", async () => {
+// At 21:58 on Tuesday Handle Comp
+cron.schedule("58 21 * * 1", async () => {
   try {
     console.info("Automated weekly comp run");
     await handleWeeklyComp(client);
