@@ -80,7 +80,7 @@ client.on("interactionCreate", async (interaction) => {
       case "run-comp":
         await interaction.deferReply();
         await handleWeeklyComp(client);
-        console.info(new Date().toString(), interaction.user.username, "Manual weekly comp run");
+        console.info("Manual weekly comp run");
         await interaction.editReply("Done");
         break;
       default:
@@ -94,7 +94,7 @@ client.on("interactionCreate", async (interaction) => {
 // At 22:00 on Tuesday Handle Comp
 cron.schedule("0 22 * * 1", async () => {
   try {
-    console.info(new Date().toString(), "Automated weekly comp run");
+    console.info("Automated weekly comp run");
     await handleWeeklyComp(client);
   } catch (error) {
     console.error(error);

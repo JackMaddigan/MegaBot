@@ -75,8 +75,7 @@ async function fetchRecentRecords(client, send=true) {
         .setThumbnail(getPicPath[recentRecord.tag])
         .setTimestamp();
       const rolePing = `<@&${roles[recentRecord.tag]}>`;
-      await client.channels.cache
-        .get(process.env.recordsChannelId)
+      await client.channels.fetch(process.env.recordsChannelId)
         .send({ embeds: [embed], content: rolePing })
         .catch((error) => console.error(error));
     }

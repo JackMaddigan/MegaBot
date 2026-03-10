@@ -7,20 +7,20 @@ const Submission = require("./Submission");
 
 async function handleWeeklyComp(client) {
   let week = await getWeek();
-  const resultsChannel = client.channels.cache.get(
+  const resultsChannel = await client.channels.fetch(
     process.env.resultsChannelId
   );
-  const adminChannel = client.channels.cache.get(process.env.adminChannelId);
+  const adminChannel = await client.channels.fetch(process.env.adminChannelId);
   const rankedResultsData = await generateRankedResults();
   const podiumsTitle = `Week ${week} results!`;
   await sendPodiums(resultsChannel, rankedResultsData, podiumsTitle);
   await sendResultsFile(adminChannel, rankedResultsData);
   await deleteData(`DELETE FROM results WHERE eventId != ?`, ["extra"]);
   week++;
-  const submitChannel = client.channels.cache.get(process.env.submitChannelId);
+  const submitChannel = await client.channels.fetch(process.env.submitChannelId);
   await submitChannel.send(`## Week ${week}`);
   await sendScrambles(
-    client.channels.cache.get(process.env.scramblesChannelId)
+    await client.channels.fetch(process.env.scramblesChannelId)
   );
   await saveData(
     `INSERT INTO key_value_store (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value`,
